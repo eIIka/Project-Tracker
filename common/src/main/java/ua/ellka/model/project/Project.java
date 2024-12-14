@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ua.ellka.model.task.Task;
-import ua.ellka.model.user.User;
-import ua.ellka.model.user.UserRole;
+import ua.ellka.model.user.Employee;
+import ua.ellka.model.user.Manager;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,7 +27,7 @@ public class Project {
     private LocalDateTime updatedAt;
     private LocalDate endDate;
     private LocalDate deadline;
-    private User manager;
+    private Manager manager;
     private Set<Task> tasks = new HashSet<>();
-    private Set<User> users = new HashSet<>();
+    private Set<Employee> employees = new HashSet<>();
 }
