@@ -1,9 +1,6 @@
 package ua.ellka.model.project;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import ua.ellka.model.task.Task;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
@@ -15,19 +12,25 @@ import java.util.Set;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 public class Project {
     private Long id;
     private String name;
     private String description;
     private int priority;
     private ProjectStatus status;
-    private LocalDateTime createdAt;
+
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+
     private LocalDateTime updatedAt;
     private LocalDate endDate;
     private LocalDate deadline;
     private Manager manager;
+
+    @Builder.Default
     private Set<Task> tasks = new HashSet<>();
+
+    @Builder.Default
     private Set<Employee> employees = new HashSet<>();
 }

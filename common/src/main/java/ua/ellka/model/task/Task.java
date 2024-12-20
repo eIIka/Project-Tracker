@@ -1,9 +1,6 @@
 package ua.ellka.model.task;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import ua.ellka.model.project.Project;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
@@ -18,8 +15,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 public class Task {
     private Long id;
     private String name;
@@ -29,41 +25,21 @@ public class Task {
     private TaskStatus status;
     private String type;
     private int priority;
-    private LocalDateTime createdAt;
+
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+
     private LocalDateTime updatedAt;
     private LocalDate endDate;
     private LocalDate deadline;
+
+    @Builder.Default
     private List<String> history = new ArrayList<>();
+
+    @Builder.Default
     private Set<String> comments = new HashSet<>();
+
     private Manager manager;
     private Employee employee;
     private Project project;
-
-    public void requestStatusChange(TaskStatus newStatus, String details) {
-        if (this.pendingStatus != null) {
-            throw new IllegalStateException("There is already a pending status change request");
-        }
-        this.pendingStatus = newStatus;
-        this.executionDetails = details;
-        this.history.add(LocalDateTime.now() + ": Requested status change to " + newStatus);
-    }
-
-    public void approveStatusChange() {
-        manager.validateRole(UserRole.MANAGER);
-        if (this.pendingStatus == null) {
-            throw new IllegalStateException("No pending status change request");
-        }
-        this.history.add(LocalDateTime.now() + ": Status changed from " + this.status + " to " + this.pendingStatus);
-        this.status = this.pendingStatus;
-        this.pendingStatus = null;
-    }
-
-    public void rejectStatusChange() {
-        manager.validateRole(UserRole.MANAGER);
-        if (this.pendingStatus == null) {
-            throw new IllegalStateException("No pending status change request");
-        }
-        this.history.add(LocalDateTime.now() + ": Status change request rejected");
-        this.pendingStatus = null;
-    }
 }
