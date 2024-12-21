@@ -1,19 +1,21 @@
 package ua.ellka.dto;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProjectDTO {
+@Builder
+public class TaskDTO {
     private Long id;
     private String name;
     private String description;
     private String status;
-    private String managerName;
     private int priority;
+    private LocalDateTime createdAt;
+    private LocalDateTime deadline;
+    private String assignedEmployee;
 }
