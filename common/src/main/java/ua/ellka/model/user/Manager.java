@@ -14,4 +14,9 @@ import java.util.Set;
 @NoArgsConstructor
 public class Manager extends User {
     Set<Project> projects = new HashSet<>();
+
+    @Override
+    public UserRole getRole() {
+        return UserRole.MANAGER;
+    }
 }

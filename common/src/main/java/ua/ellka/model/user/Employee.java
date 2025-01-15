@@ -16,4 +16,9 @@ import java.util.Set;
 @NoArgsConstructor
 public class Employee extends User {
     Map<Project, Set<Task>> tasks = new HashMap<>();
+
+    @Override
+    public UserRole getRole() {
+        return UserRole.EMPLOYEE;
+    }
 }
