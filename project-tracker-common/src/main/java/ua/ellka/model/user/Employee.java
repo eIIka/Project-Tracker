@@ -1,5 +1,6 @@
 package ua.ellka.model.user;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.Setter;
 import ua.ellka.model.project.Project;
 import ua.ellka.model.task.Task;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,8 +16,14 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
+@DiscriminatorValue("Employee")
 public class Employee extends User {
-    Map<Project, Set<Task>> tasks = new HashMap<>();
+    @ManyToMany(mappedBy = "employees")
+    private Set<Project> projects = new HashSet<>();
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Task> tasks = new HashSet<>();
 
     @Override
     public UserRole getRole() {

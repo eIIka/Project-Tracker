@@ -1,5 +1,6 @@
 package ua.ellka.model.user;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,10 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
+@DiscriminatorValue("Manager")
 public class Manager extends User {
+    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<Project> projects = new HashSet<>();
 
     @Override
