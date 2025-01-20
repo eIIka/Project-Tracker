@@ -1,0 +1,69 @@
+package ua.ellka.repo;
+
+import ua.ellka.exception.ProjectTrackerPersistingException;
+import ua.ellka.model.project.Project;
+import ua.ellka.model.task.Task;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Repository interface for handling Task persistence operations.
+ */
+public interface TaskRepo {
+
+    /**
+     * Finds a task by ID.
+     *
+     * @param id the ID of the task.
+     * @return an Optional containing the found task or empty if not found.
+     * @throws ProjectTrackerPersistingException if any persisting error occurs.
+     */
+    Optional<Task> find(Long id) throws ProjectTrackerPersistingException;
+
+    /**
+     * Finds a task by name.
+     *
+     * @param name the name of the task.
+     * @return an Optional containing the found task or empty if not found.
+     * @throws ProjectTrackerPersistingException if any persisting error occurs.
+     */
+    Optional<Task> findByName(String name) throws ProjectTrackerPersistingException;
+
+    /**
+     * Saves a task to the database.
+     *
+     * @param task the task to save.
+     * @return an Optional containing the saved task.
+     * @throws ProjectTrackerPersistingException if any persisting error occurs.
+     */
+    Optional<Task> save(Task task) throws ProjectTrackerPersistingException;
+
+    /**
+     * Deletes a task from the database.
+     *
+     * @param task the task to delete.
+     * @return an Optional containing the deleted task or empty if the task was not found.
+     * @throws ProjectTrackerPersistingException if any persisting error occurs.
+     */
+    Optional<Task> delete(Task task) throws ProjectTrackerPersistingException;
+
+    /**
+     * Updates a task in the database.
+     *
+     * @param task the task to update.
+     * @return an Optional containing the updated task or empty if the task was not found.
+     * @throws ProjectTrackerPersistingException if any persisting error occurs.
+     */
+    Optional<Task> update(Task task) throws ProjectTrackerPersistingException;
+
+    /**
+     * Finds all tasks associated with a specific project.
+     *
+     * @param projectId the project to find tasks for.
+     * @return a List of tasks associated with the given project.
+     * @throws ProjectTrackerPersistingException if any persisting error occurs.
+     */
+    List<Task> findAllByProjectId(Long projectId) throws ProjectTrackerPersistingException;
+
+}
