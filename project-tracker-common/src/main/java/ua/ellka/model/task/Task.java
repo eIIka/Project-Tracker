@@ -30,14 +30,14 @@ public class Task {
     private String name;
     private String description;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = TaskStatusConvertor.class)
     @Column(name = "pending_status")
     private TaskStatus pendingStatus;
 
     @Column(name = "execution_details")
     private String executionDetails;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = TaskStatusConvertor.class)
     private TaskStatus status;
 
     private String type;

@@ -16,7 +16,7 @@ import java.util.Set;
 @Entity
 @DiscriminatorValue("Manager")
 public class Manager extends User {
-    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     Set<Project> projects = new HashSet<>();
 
     @Override

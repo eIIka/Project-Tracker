@@ -19,10 +19,16 @@ import java.util.Set;
 @Entity
 @DiscriminatorValue("Employee")
 public class Employee extends User {
-    @ManyToMany(mappedBy = "employees")
+    @ManyToMany
+    @JoinTable(
+            name = "project_employees",
+            joinColumns = @JoinColumn(name = "employee_id"),
+            inverseJoinColumns = @JoinColumn(name = "project_id")
+
+    )
     private Set<Project> projects = new HashSet<>();
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<Task> tasks = new HashSet<>();
 
     @Override

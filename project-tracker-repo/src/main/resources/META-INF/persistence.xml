@@ -13,16 +13,15 @@
         <class>ua.ellka.model.user.UserRole</class>
         <class>ua.ellka.model.user.Employee</class>
         <class>ua.ellka.model.user.Manager</class>
+        <class>ua.ellka.model.EnumConverter</class>
 
         <properties>
             <!--            JPA properties -->
             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
-<!--            <property name="jakarta.persistence.jdbc.url" value="$DB_URL"/>-->
-<!--            <property name="jakarta.persistence.jdbc.user" value="$DB_USER"/>-->
-<!--            <property name="jakarta.persistence.jdbc.password" value="$DB_PASSWORD"/>-->
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/project_tracker_db"/>
-            <property name="jakarta.persistence.jdbc.user" value="adminuser"/>
-            <property name="jakarta.persistence.jdbc.password" value="17092024hillel"/>
+            <property name="jakarta.persistence.jdbc.url" value=""/>
+            <property name="jakarta.persistence.jdbc.user" value=""/>
+            <property name="jakarta.persistence.jdbc.password" value=""/>
+
 
             <!--            Hibernate specific properties -->
             <property name="hibernate.show_sql" value="true"/>

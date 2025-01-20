@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -34,9 +35,8 @@ public abstract class User {
     private String email;
     private String password;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "user_role", insertable = false, updatable = false)
-    @Transient
+    @Column(name = "user_role", insertable = false, updatable = false)
+    @Convert(converter = UserRoleConvertor.class)
     private UserRole role;
 
     @Column(name = "registered_at")

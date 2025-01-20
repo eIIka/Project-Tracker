@@ -29,7 +29,7 @@ public class Project {
     private String description;
     private int priority;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ProjectStatusConvertor.class)
     private ProjectStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -55,6 +55,7 @@ public class Project {
             name = "project_employees",
             joinColumns = @JoinColumn(name = "project_id"),
             inverseJoinColumns = @JoinColumn(name = "employee_id")
+
     )
     private Set<Employee> employees = new HashSet<>();
 }
