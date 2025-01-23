@@ -65,14 +65,14 @@ public class Task {
     private Set<String> comments = new HashSet<>();
 
     @ManyToOne
-    @JoinColumn(name = "employee_id", nullable = true)
+    @JoinColumn(name = "employee_id")
     private Employee employee;
 
     @ManyToOne
-    @JoinColumn(name = "manager_id", nullable = true)
+    @JoinColumn(name = "manager_id")
     private Manager manager;
 
     @ManyToOne
-    @JoinColumn(name = "project_id", nullable = true)
+    @JoinColumn(name = "project_id")
     private Project project;
 }
