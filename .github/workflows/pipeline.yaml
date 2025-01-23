@@ -11,5 +11,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - run: chmod +x ./mvnw
+        name: Надати права на виконання для mvnw
       - run: ./mvnw test
         name: Execute maven test
