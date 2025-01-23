@@ -1,7 +1,6 @@
 package ua.ellka.repo;
 
 import ua.ellka.exception.ProjectTrackerPersistingException;
-import ua.ellka.model.project.Project;
 import ua.ellka.model.task.Task;
 
 import java.util.List;
@@ -47,15 +46,6 @@ public interface TaskRepo {
      * @throws ProjectTrackerPersistingException if any persisting error occurs.
      */
     Optional<Task> delete(Task task) throws ProjectTrackerPersistingException;
-
-    /**
-     * Updates a task in the database.
-     *
-     * @param task the task to update.
-     * @return an Optional containing the updated task or empty if the task was not found.
-     * @throws ProjectTrackerPersistingException if any persisting error occurs.
-     */
-    Optional<Task> update(Task task) throws ProjectTrackerPersistingException;
 
     /**
      * Finds all tasks associated with a specific project.

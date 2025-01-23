@@ -27,6 +27,7 @@
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <hibernate.version>6.6.4.Final</hibernate.version>
         <jpa.version>3.2.0</jpa.version>
+        <h2.version>2.3.232</h2.version>
     </properties>
 
     <dependencyManagement>
@@ -62,6 +63,12 @@
                 <groupId>jakarta.persistence</groupId>
                 <artifactId>jakarta.persistence-api</artifactId>
                 <version>${jpa.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${h2.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
