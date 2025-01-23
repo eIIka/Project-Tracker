@@ -13,7 +13,6 @@
         <class>ua.ellka.model.user.UserRole</class>
         <class>ua.ellka.model.user.Employee</class>
         <class>ua.ellka.model.user.Manager</class>
-        <class>ua.ellka.model.EnumConverter</class>
 
         <properties>
             <!--            JPA properties -->

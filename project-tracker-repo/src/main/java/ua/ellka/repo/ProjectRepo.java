@@ -3,7 +3,6 @@ package ua.ellka.repo;
 import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.model.project.Project;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -39,15 +38,6 @@ public interface ProjectRepo {
     Optional<Project> save(Project project) throws ProjectTrackerPersistingException;
 
     /**
-     * Updates a project in the database.
-     *
-     * @param project the project to update.
-     * @return an Optional containing the updated project or empty if the project was not found.
-     * @throws ProjectTrackerPersistingException if any persisting error occurs.
-     */
-    Optional<Project> update(Project project) throws ProjectTrackerPersistingException;
-
-    /**
      * Deletes a project by ID.
      *
      * @param id the ID of the project to delete.
@@ -55,5 +45,14 @@ public interface ProjectRepo {
      * @throws ProjectTrackerPersistingException if any persisting error occurs.
      */
     Optional<Project> delete(Long id) throws ProjectTrackerPersistingException;
+
+    /**
+     * Deletes a project by project.
+     *
+     * @param project the project to delete.
+     * @return an Optional containing the deleted project or empty if not found.
+     * @throws ProjectTrackerPersistingException if any persisting error occurs.
+     */
+    Optional<Project> deleteByProject(Project project) throws ProjectTrackerPersistingException;
 
 }
