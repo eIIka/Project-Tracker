@@ -20,6 +20,6 @@ public enum ProjectStatus {
                 return projectStatus;
             }
         }
-        return ProjectStatus.PLANNED;
+        throw new IllegalArgumentException("No enum constant for project status: " + status);
     }
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,8 +17,11 @@ public class TaskDTO {
     private String name;
     private String description;
     private String status;
+    private String type;
     private int priority;
     private LocalDateTime createdAt;
-    private LocalDateTime deadline;
+    private LocalDate deadline;
+    private String assignedManager;
     private String assignedEmployee;
+    private String projectName;
 }
