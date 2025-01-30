@@ -1,7 +1,6 @@
 package ua.ellka.model.task;
 
 import jakarta.persistence.AttributeConverter;
-import ua.ellka.model.user.UserRole;
 
 public class TaskStatusConvertor implements AttributeConverter<TaskStatus, String> {
 
@@ -17,7 +16,7 @@ public class TaskStatusConvertor implements AttributeConverter<TaskStatus, Strin
             return TaskStatus.NOT_STARTED;
         }
 
-        return TaskStatus.fromStatus(dbData);
+        return TaskStatus.fromString(dbData);
     }
 }
 

@@ -10,5 +10,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EmployeeDTO extends UserDTO {
-    private int taskCount;
+    private Long taskCount;
+    private Long projectCount;
+
+    @Override
+    public String getRole() {
+        return "Employee";
+    }
 }

@@ -10,5 +10,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ManagerDTO extends UserDTO {
-    private int projectCount;
+    private Long projectCount;
+
+    @Override
+    public String getRole() {
+        return "Manager";
+    }
 }

@@ -15,12 +15,12 @@ public enum TaskStatus {
 
     private final String status;
 
-    public static TaskStatus fromStatus(String status) {
+    public static TaskStatus fromString(String status) {
         for (TaskStatus taskStatus : TaskStatus.values()) {
             if (taskStatus.getStatus().equalsIgnoreCase(status)) {
                 return taskStatus;
             }
         }
-        return TaskStatus.NOT_STARTED;
+        throw new IllegalArgumentException("No enum constant for task status: " + status);
     }
 }
