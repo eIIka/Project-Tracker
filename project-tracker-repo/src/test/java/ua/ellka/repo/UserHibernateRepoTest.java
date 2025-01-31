@@ -149,4 +149,34 @@ class UserHibernateRepoTest extends RepoParent{
 
         assertTrue(deleted.isEmpty(), "user not found");
     }
+
+    @Test
+    void shouldUpdateUserSuccessfully() throws ProjectTrackerPersistingException {
+        User user = userHibernateRepo.find(2L).get();
+
+        User updatedUser = new Employee();
+        updatedUser.setId(user.getId());
+        updatedUser.setNickname("newNick");
+        updatedUser.setEmail("new@example.com");
+        updatedUser.setRegisteredAt(LocalDateTime.now());
+
+        Optional<User> result = userHibernateRepo.update(updatedUser);
+
+        assertNotNull(result);
+        User savedUser = result.get();
+        assertEquals("newNick", savedUser.getNickname());
+        assertEquals("new@example.com", savedUser.getEmail());
+        assertEquals(user.getPassword(), savedUser.getPassword());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenUserNotFound() throws ProjectTrackerPersistingException {
+        User nonExistingUser = new Employee();
+        nonExistingUser.setId(999L);
+        nonExistingUser.setNickname("ghost");
+
+        Optional<User> result = userHibernateRepo.update(nonExistingUser);
+
+        assertNotNull(result);
+    }
 }

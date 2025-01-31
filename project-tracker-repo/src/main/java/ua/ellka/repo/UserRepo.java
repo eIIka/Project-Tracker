@@ -64,4 +64,12 @@ public interface UserRepo {
      */
     Optional<User> save(User user) throws ProjectTrackerPersistingException;
 
+    /**
+     * Updates an existing user in the database.
+     *
+     * @param user the user object containing updated values.
+     * @return an Optional containing the updated user, or an empty Optional if the user was not found.
+     * @throws ProjectTrackerPersistingException if any persisting error occurs during the update.
+     */
+    Optional<User> update(User user) throws ProjectTrackerPersistingException;
 }

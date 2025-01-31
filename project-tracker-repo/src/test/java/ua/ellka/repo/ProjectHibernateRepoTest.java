@@ -123,4 +123,67 @@ public class ProjectHibernateRepoTest extends RepoParent {
 
         assertTrue(deleted.isEmpty(), "No project should be deleted");
     }
+
+    @Test
+    void updateTest_success() throws ProjectTrackerPersistingException {
+        Long projectId = 1L;
+        Optional<Project> existingProjectOptional = projectHibernateRepo.find(projectId);
+        assertTrue(existingProjectOptional.isPresent(), "Project to update not found");
+
+        Project existingProject = existingProjectOptional.get();
+        existingProject.setName("Updated Project Name");
+        existingProject.setDescription("Updated Description");
+        existingProject.setPriority(2);
+        existingProject.setStatus(ProjectStatus.COMPLETED);
+
+        Optional<Project> updatedProject = projectHibernateRepo.update(existingProject);
+        assertTrue(updatedProject.isPresent(), "Project update failed");
+
+        Project updated = updatedProject.get();
+        assertEquals("Updated Project Name", updated.getName());
+        assertEquals("Updated Description", updated.getDescription());
+        assertEquals(2, updated.getPriority());
+        assertEquals(ProjectStatus.COMPLETED, updated.getStatus());
+    }
+
+    @Test
+    void updateTest_notFound() throws ProjectTrackerPersistingException {
+        Project nonExistentProject = new Project();
+        nonExistentProject.setId(999L);
+
+        Optional<Project> updatedProject = projectHibernateRepo.update(nonExistentProject);
+        assertTrue(updatedProject.isEmpty(), "Non-existent project should not be updated");
+    }
+
+    @Test
+    void updateTest_emptyName() throws ProjectTrackerPersistingException {
+        Long projectId = 1L;
+        Optional<Project> existingProjectOptional = projectHibernateRepo.find(projectId);
+        assertTrue(existingProjectOptional.isPresent(), "Project to update not found");
+
+        Project existingProject = existingProjectOptional.get();
+        existingProject.setName("");
+
+        Optional<Project> updatedProject = projectHibernateRepo.update(existingProject);
+        assertTrue(updatedProject.isPresent(), "Project should be updated even if name is null");
+
+        Project updated = updatedProject.get();
+        assertEquals("", updated.getName());
+    }
+
+    @Test
+    void updateTest_nullName() throws ProjectTrackerPersistingException {
+        Long projectId = 1L;
+        Optional<Project> existingProjectOptional = projectHibernateRepo.find(projectId);
+        assertTrue(existingProjectOptional.isPresent(), "Project to update not found");
+
+        Project existingProject = existingProjectOptional.get();
+        existingProject.setName(null);
+
+        Optional<Project> updatedProject = projectHibernateRepo.update(existingProject);
+        assertTrue(updatedProject.isPresent(), "Project should be updated even if name is null");
+
+        Project updated = updatedProject.get();
+        assertNotNull(updated.getName(),"Name should not be null");
+    }
 }

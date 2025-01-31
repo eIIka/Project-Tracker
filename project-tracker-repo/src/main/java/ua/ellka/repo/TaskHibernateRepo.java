@@ -68,4 +68,85 @@ public class TaskHibernateRepo implements TaskRepo {
             return query.getResultList();
         }
     }
+
+    @Override
+    public Optional<Task> update(Task task) throws ProjectTrackerPersistingException {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+
+            Task existingTask = session.find(Task.class, task.getId());
+            if (existingTask == null) {
+                return Optional.empty();
+            }
+
+            if (task.getName() != null) {
+                existingTask.setName(task.getName());
+            }
+
+            if (task.getDescription() != null) {
+                existingTask.setDescription(task.getDescription());
+            }
+
+            if (task.getPendingStatus() != null) {
+                existingTask.setPendingStatus(task.getPendingStatus());
+            }
+
+            if (task.getExecutionDetails() != null) {
+                existingTask.setExecutionDetails(task.getExecutionDetails());
+            }
+
+            if (task.getStatus() != null) {
+                existingTask.setStatus(task.getStatus());
+            }
+
+            if (task.getType() != null) {
+                existingTask.setType(task.getType());
+            }
+
+            if (task.getPriority() != 0) {
+                existingTask.setPriority(task.getPriority());
+            }
+
+            if (task.getCreatedAt() != null) {
+                existingTask.setCreatedAt(task.getCreatedAt());
+            }
+
+            if (task.getUpdatedAt() != null) {
+                existingTask.setUpdatedAt(task.getUpdatedAt());
+            }
+
+            if (task.getEndDate() != null) {
+                existingTask.setEndDate(task.getEndDate());
+            }
+
+            if (task.getDeadline() != null) {
+                existingTask.setDeadline(task.getDeadline());
+            }
+
+            if (task.getHistory() != null) {
+                existingTask.setHistory(task.getHistory());
+            }
+
+            if (task.getComments() != null) {
+                existingTask.setComments(task.getComments());
+            }
+
+            if (task.getEmployee() != null) {
+                existingTask.setEmployee(task.getEmployee());
+            }
+
+            if (task.getManager() != null) {
+                existingTask.setManager(task.getManager());
+            }
+
+            if (task.getProject() != null) {
+                existingTask.setProject(task.getProject());
+            }
+
+            session.merge(existingTask);
+
+            session.getTransaction().commit();
+            return Optional.ofNullable(existingTask);
+        }
+    }
 }

@@ -129,4 +129,32 @@ class TaskHibernateRepoTest extends RepoParent{
         assertTrue(tasks.isEmpty(), "Tasks list should be empty for a non-existent project");
 
     }
+
+    @Test
+    void testUpdateTaskFields() throws ProjectTrackerPersistingException {
+        Task task = new Task();
+        task.setName("New Task Name");
+        task.setDescription("Updated description");
+        task.setPriority(8);
+
+        taskHibernateRepo.save(task);
+
+        task.setName("Updated Task Name");
+        Optional<Task> updatedTask = taskHibernateRepo.update(task);
+
+        assertTrue(updatedTask.isPresent());
+        assertEquals("Updated Task Name", updatedTask.get().getName());
+        assertEquals("Updated description", updatedTask.get().getDescription());
+        assertEquals(8, updatedTask.get().getPriority());
+    }
+
+    @Test
+    void testUpdateNonExistingTask() throws ProjectTrackerPersistingException {
+        Task task = new Task();
+        task.setId(999L);
+        task.setName("Non-existing Task");
+
+        Optional<Task> result = taskHibernateRepo.update(task);
+        assertTrue(result.isEmpty());
+    }
 }
