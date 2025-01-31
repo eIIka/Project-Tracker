@@ -25,7 +25,7 @@
         </dependency>
         <dependency>
             <groupId>ua.ellka</groupId>
-            <artifactId>project-tracker-service</artifactId>
+            <artifactId>project-tracker-repo</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
