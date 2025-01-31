@@ -7,6 +7,7 @@ import org.hibernate.query.Query;
 import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.model.user.User;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -84,6 +85,62 @@ public class UserHibernateRepo implements UserRepo {
 
             session.getTransaction().commit();
             return Optional.ofNullable(user);
+        }
+    }
+
+    @Override
+    public Optional<User> update(User user) throws ProjectTrackerPersistingException {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+
+            User existingUser = session.find(User.class, user.getId());
+            if (existingUser == null) {
+                return Optional.empty();
+            }
+
+            if (user.getNickname() != null) {
+                existingUser.setNickname(user.getNickname());
+            }
+
+            if (user.getFirstName() != null) {
+                existingUser.setFirstName(user.getFirstName());
+            }
+
+            if (user.getLastName() != null) {
+                existingUser.setLastName(user.getLastName());
+            }
+
+            if (user.getPhoneNumber() != null) {
+                existingUser.setPhoneNumber(user.getPhoneNumber());
+            }
+
+            if (user.getEmail() != null) {
+                existingUser.setEmail(user.getEmail());
+            }
+
+            if (user.getPassword() != null) {
+                existingUser.setPassword(user.getPassword());
+            }
+
+            if (user.getRole() != null) {
+                existingUser.setRole(user.getRole());
+            }
+
+            if (user.getRegisteredAt() != null) {
+                existingUser.setRegisteredAt(user.getRegisteredAt());
+            }else {
+                existingUser.setRegisteredAt(LocalDateTime.now());
+            }
+
+            if (user.getLastLoginAt() != null) {
+                existingUser.setLastLoginAt(user.getLastLoginAt());
+            }
+
+            session.merge(existingUser);
+
+            session.getTransaction().commit();
+
+            return Optional.ofNullable(existingUser);
         }
     }
 }

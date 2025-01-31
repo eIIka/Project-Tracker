@@ -55,4 +55,12 @@ public interface ProjectRepo {
      */
     Optional<Project> deleteByProject(Project project) throws ProjectTrackerPersistingException;
 
+    /**
+     * Updates an existing project in the database.
+     *
+     * @param project the project object that needs to be updated
+     * @return Optional containing the updated project, if successful
+     * @throws ProjectTrackerPersistingException if the project is not found or any other error occurs during the update
+     */
+    Optional<Project> update(Project project) throws ProjectTrackerPersistingException;
 }

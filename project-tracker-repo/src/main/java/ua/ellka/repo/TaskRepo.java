@@ -56,4 +56,12 @@ public interface TaskRepo {
      */
     List<Task> findAllByProjectId(Long projectId) throws ProjectTrackerPersistingException;
 
+    /**
+     * Updates an existing task in the database.
+     *
+     * @param task The Task object containing updated data.
+     * @return An Optional containing the updated task if it exists in the database
+     * @throws ProjectTrackerPersistingException If an error occurs during the update process.
+     */
+    Optional<Task> update(Task task) throws ProjectTrackerPersistingException;
 }

@@ -76,4 +76,61 @@ public class ProjectHibernateRepo implements ProjectRepo {
             return Optional.ofNullable(projectDelete);
         }
     }
+
+    @Override
+    public Optional<Project> update(Project project) throws ProjectTrackerPersistingException {
+        try(Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+
+            Project existingProject = session.find(Project.class, project.getId());
+            if (existingProject == null) {
+                return Optional.empty();
+            }
+
+            if (project.getName() != null) {
+                existingProject.setName(project.getName());
+            }
+
+            if (project.getDescription() != null) {
+                existingProject.setDescription(project.getDescription());
+            }
+
+            if (project.getStatus() != null) {
+                existingProject.setStatus(project.getStatus());
+            }
+
+            if (project.getPriority() > 0 && project.getPriority() < 11) {
+                existingProject.setPriority(project.getPriority());
+            }
+
+            if (project.getCreatedAt() != null) {
+                existingProject.setCreatedAt(project.getCreatedAt());
+            }
+
+            if (project.getUpdatedAt() != null) {
+                existingProject.setUpdatedAt(project.getUpdatedAt());
+            }
+
+            if (project.getManager() != null) {
+                existingProject.setManager(project.getManager());
+            }
+
+            if (project.getDeadline() != null) {
+                existingProject.setDeadline(project.getDeadline());
+            }
+
+            if (project.getEmployees() != null) {
+                existingProject.setEmployees(project.getEmployees());
+            }
+
+            if (project.getTasks() != null) {
+                existingProject.setTasks(project.getTasks());
+            }
+
+            session.merge(existingProject);
+
+            session.getTransaction().commit();
+            return Optional.ofNullable(existingProject);
+        }
+    }
 }
