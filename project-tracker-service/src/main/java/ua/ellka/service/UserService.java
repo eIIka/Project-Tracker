@@ -9,18 +9,18 @@ public interface UserService {
     /**
      * Creates a new user.
      *
-     * @param user the user data transfer object.
+     * @param userDTO the user data transfer object.
      * @return the created user.
      */
-    UserDTO createUser(UserDTO user);
+    UserDTO createUser(UserDTO userDTO);
 
     /**
      * Updates an existing user.
      *
-     * @param user the user data transfer object with updated information.
+     * @param userDTO the user data transfer object with updated information.
      * @return the updated user.
      */
-    UserDTO updateUser(UserDTO user);
+    UserDTO updateUser(UserDTO userDTO);
 
     /**
      * Retrieves a user by ID.
@@ -35,7 +35,7 @@ public interface UserService {
      *
      * @return a list of all users.
      */
-    List<UserDTO> getAllUsers();
+    //List<UserDTO> getAllUsers();
 
     /**
      * Deletes a user by ID.

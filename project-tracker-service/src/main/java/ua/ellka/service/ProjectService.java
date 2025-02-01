@@ -35,7 +35,7 @@ public interface ProjectService {
      *
      * @return a list of all projects.
      */
-    List<ProjectDTO> getAllProjects();
+    //List<ProjectDTO> getAllProjects();
 
     /**
      * Retrieves a project by ID.

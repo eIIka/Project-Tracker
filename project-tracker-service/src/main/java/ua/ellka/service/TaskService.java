@@ -36,7 +36,7 @@ public interface TaskService {
      * @param projectId the project ID.
      * @return a list of tasks related to the project.
      */
-    List<TaskDTO> getAllTasksByProjectId(Long projectId);
+    //List<TaskDTO> getAllTasksByProjectId(Long projectId);
 
     /**
      * Deletes a task by ID.
