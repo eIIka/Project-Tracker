@@ -1,6 +1,7 @@
 package ua.ellka.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ua.ellka.dto.EmployeeDTO;
 import ua.ellka.dto.ManagerDTO;
 import ua.ellka.dto.UserDTO;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepo userRepo;

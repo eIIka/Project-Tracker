@@ -1,6 +1,7 @@
 package ua.ellka.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ua.ellka.dto.TaskDTO;
 import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.mapper.TaskMapper;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
+@Slf4j
 public class TaskServiceImpl implements TaskService {
     
     private final TaskRepo taskRepo;
