@@ -1,7 +1,13 @@
 package ua.ellka;
 
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+import ua.ellka.config.JdbcConfig;
+import ua.ellka.dao.UserDao;
 import ua.ellka.dao.UserMySqlDao;
+import ua.ellka.dao.UserSpringJdbcDao;
 import ua.ellka.exception.DaoException;
+import ua.ellka.mapper.UserRowMapper;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
 import ua.ellka.model.user.User;
@@ -16,9 +22,9 @@ import java.util.Optional;
 public class Main {
     public static void main(String[] args) throws ClassNotFoundException {
 
-        String username = System.getenv("MYSQL_USER");
-        String password = System.getenv("MYSQL_PASSWORD");
-        String dbname = System.getenv("MYSQL_DB_NAME");
+        String username = System.getenv("JDBC_DB_USER");
+        String password = System.getenv("JDBC_DB_PASSWORD");
+        String dbname = System.getenv("JDBC_DB_NAME");
         //String url = "jdbc:mysql://localhost:3306/" + dbname;
         String url = "jdbc:mysql://127.0.0.1:3306/" + dbname;
 
@@ -29,7 +35,7 @@ public class Main {
             UserMySqlDao dao = new UserMySqlDao(connection);
 //
 //            List<User> users = dao.findAll();
-//            Optional<User> byId = dao.findById(1L);
+            Optional<User> byId = dao.findById(1L);
 //            Optional<User> byNickname = dao.findByNickname("alice_j");
 //            Optional<User> byEmail = dao.findByEmail("evan.foster@example.com");
 //
@@ -52,6 +58,30 @@ public class Main {
 
         } catch (SQLException | DaoException e) {
             System.out.println("Unable to connect to database");
+        }
+
+
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(JdbcConfig.class)) {
+            JdbcTemplate jdbcTemplate = context.getBean(JdbcTemplate.class);
+            UserRowMapper userRowMapper = context.getBean(UserRowMapper.class);
+            UserDao userDao = new UserSpringJdbcDao(jdbcTemplate, userRowMapper);
+
+            User newUser = new Employee();
+            newUser.setNickname("new nickname");
+            newUser.setFirstName("new firstname");
+            newUser.setLastName("new lastname");
+            newUser.setEmail("newemail@gmail.com");
+            newUser.setPassword("password");
+            newUser.setPhoneNumber("1234567685");
+            newUser.setRole(UserRole.EMPLOYEE);
+
+//            Optional<User> savedUser = userDao.save(newUser);
+//            System.out.println("Saved User: " + savedUser.orElse(null));
+
+            Optional<User> updateUser = userDao.updateById(1L, newUser);
+            System.out.println("Updated User: " + updateUser.orElse(null));
+        } catch (DaoException e) {
+            System.out.println("Error: " + e.getMessage());
         }
 
     }
