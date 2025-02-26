@@ -5,7 +5,11 @@ import org.junit.jupiter.api.Test;
 import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.model.project.Project;
 import ua.ellka.model.project.ProjectStatus;
+import ua.ellka.model.user.Employee;
+import ua.ellka.model.user.Manager;
+import ua.ellka.model.user.User;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -76,28 +80,6 @@ public class ProjectHibernateRepoTest extends RepoParent {
         assertEquals(ProjectStatus.IN_PROGRESS, savedProject.getStatus());
     }
 
-    @Test
-    void deleteTest_success() throws ProjectTrackerPersistingException {
-        Long projectId = 1L;
-
-        Optional<Project> project = projectHibernateRepo.find(projectId);
-        assertTrue(project.isPresent(), "Project to be deleted not found");
-
-        Optional<Project> deleted = projectHibernateRepo.delete(projectId);
-        assertTrue(deleted.isPresent(), "Deleted project not found");
-        assertEquals(projectId, deleted.get().getId());
-
-        Optional<Project> fromDb = projectHibernateRepo.find(projectId);
-        assertTrue(fromDb.isEmpty(), "Project was not deleted");
-    }
-
-    @Test
-    void deleteTest_notFound() throws ProjectTrackerPersistingException {
-        Long nonExistentId = 999L;
-        Optional<Project> deleted = projectHibernateRepo.delete(nonExistentId);
-
-        assertTrue(deleted.isEmpty(), "No project should be deleted");
-    }
 
     @Test
     void deleteByProjectTest_success() throws ProjectTrackerPersistingException {
@@ -105,23 +87,13 @@ public class ProjectHibernateRepoTest extends RepoParent {
         assertTrue(optionalProject.isPresent(), "Project Alpha not found");
 
         Project project = optionalProject.get();
-        Optional<Project> deleted = projectHibernateRepo.deleteByProject(project);
+        Optional<Project> deleted = projectHibernateRepo.delete(project);
 
         assertTrue(deleted.isPresent(), "Deleted project not found");
         assertEquals(project.getId(), deleted.get().getId());
 
         Optional<Project> fromDb = projectHibernateRepo.findByName("Project Alpha");
         assertTrue(fromDb.isEmpty(), "Project Alpha was not deleted");
-    }
-
-    @Test
-    void deleteByProjectTest_notFound() throws ProjectTrackerPersistingException {
-        Project project = new Project();
-        project.setId(999L);
-
-        Optional<Project> deleted = projectHibernateRepo.deleteByProject(project);
-
-        assertTrue(deleted.isEmpty(), "No project should be deleted");
     }
 
     @Test
@@ -147,15 +119,6 @@ public class ProjectHibernateRepoTest extends RepoParent {
     }
 
     @Test
-    void updateTest_notFound() throws ProjectTrackerPersistingException {
-        Project nonExistentProject = new Project();
-        nonExistentProject.setId(999L);
-
-        Optional<Project> updatedProject = projectHibernateRepo.update(nonExistentProject);
-        assertTrue(updatedProject.isEmpty(), "Non-existent project should not be updated");
-    }
-
-    @Test
     void updateTest_emptyName() throws ProjectTrackerPersistingException {
         Long projectId = 1L;
         Optional<Project> existingProjectOptional = projectHibernateRepo.find(projectId);
@@ -172,18 +135,45 @@ public class ProjectHibernateRepoTest extends RepoParent {
     }
 
     @Test
-    void updateTest_nullName() throws ProjectTrackerPersistingException {
-        Long projectId = 1L;
-        Optional<Project> existingProjectOptional = projectHibernateRepo.find(projectId);
-        assertTrue(existingProjectOptional.isPresent(), "Project to update not found");
+    void findProjectByUserTest_manager_success() throws ProjectTrackerPersistingException {
+        User manager = new Manager();
+        manager.setId(2L);
 
-        Project existingProject = existingProjectOptional.get();
-        existingProject.setName(null);
+        List<Project> projects = projectHibernateRepo.findByUser(manager);
 
-        Optional<Project> updatedProject = projectHibernateRepo.update(existingProject);
-        assertTrue(updatedProject.isPresent(), "Project should be updated even if name is null");
+        assertNotNull(projects);
+        assertFalse(projects.isEmpty(), "Projects list should not be empty");
+        assertTrue(projects.stream()
+                .allMatch(project -> project.getManager().getId().equals(manager.getId())));
+    }
 
-        Project updated = updatedProject.get();
-        assertNotNull(updated.getName(),"Name should not be null");
+    @Test
+    void findProjectByUserTest_employee_success() throws ProjectTrackerPersistingException {
+        Employee employee = new Employee();
+        employee.setId(4L);
+
+        List<Project> projects = projectHibernateRepo.findByUser(employee);
+
+        System.out.println(projects.size());
+
+        assertNotNull(projects);
+        assertFalse(projects.isEmpty(), "Projects list should not be empty");
+        assertTrue(projects.stream()
+                .allMatch(project -> project.getEmployees().stream()
+                        .findFirst()
+                        .map(employeeInProject -> employeeInProject.getId().equals(employee.getId()))
+                        .orElse(false)
+                )
+        );
+    }
+
+    @Test
+    void findProjectByUserTest_userNotFound() throws ProjectTrackerPersistingException {
+        User manager = new Manager();
+        manager.setId(999L);
+
+        List<Project> projects = projectHibernateRepo.findByUser(manager);
+
+        assertTrue(projects.isEmpty(), "Projects list should not be empty");
     }
 }

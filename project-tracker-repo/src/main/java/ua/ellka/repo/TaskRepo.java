@@ -1,7 +1,9 @@
 package ua.ellka.repo;
 
 import ua.ellka.exception.ProjectTrackerPersistingException;
+import ua.ellka.model.project.Project;
 import ua.ellka.model.task.Task;
+import ua.ellka.model.user.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,12 @@ public interface TaskRepo {
      */
     Optional<Task> findByName(String name) throws ProjectTrackerPersistingException;
 
+    List<Task> findByUser(User user) throws ProjectTrackerPersistingException;
+
+    List<Task> findByProject(Project project) throws ProjectTrackerPersistingException;
+
+    List<Task> findByProjectAndUser(Project project, User user) throws ProjectTrackerPersistingException;
+
     /**
      * Saves a task to the database.
      *
@@ -46,15 +54,6 @@ public interface TaskRepo {
      * @throws ProjectTrackerPersistingException if any persisting error occurs.
      */
     Optional<Task> delete(Task task) throws ProjectTrackerPersistingException;
-
-    /**
-     * Finds all tasks associated with a specific project.
-     *
-     * @param projectId the project to find tasks for.
-     * @return a List of tasks associated with the given project.
-     * @throws ProjectTrackerPersistingException if any persisting error occurs.
-     */
-    List<Task> findAllByProjectId(Long projectId) throws ProjectTrackerPersistingException;
 
     /**
      * Updates an existing task in the database.

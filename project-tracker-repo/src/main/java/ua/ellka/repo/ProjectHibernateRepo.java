@@ -4,26 +4,33 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.springframework.stereotype.Repository;
 import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.model.project.Project;
+import ua.ellka.model.user.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
+@Repository
 public class ProjectHibernateRepo implements ProjectRepo {
     private final SessionFactory sessionFactory;
 
     @Override
     public Optional<Project> find(Long id) throws ProjectTrackerPersistingException {
         try(Session session = sessionFactory.openSession()) {
-            return Optional.ofNullable(session.find(Project.class, id));
+            session.beginTransaction();
+            Project project = session.get(Project.class, id);
+            session.getTransaction().commit();
+            return Optional.ofNullable(project);
         }
     }
 
     @Override
     public Optional<Project> findByName(String name) throws ProjectTrackerPersistingException {
         try(Session session = sessionFactory.openSession()) {
-            Query<Project> query = session.createQuery("from Project where name = :name", Project.class);
+            Query<Project> query = session.createQuery("SELECT p FROM Project p where p.name = :name", Project.class);
             query.setParameter("name", name);
 
             return query.uniqueResultOptional();
@@ -31,49 +38,44 @@ public class ProjectHibernateRepo implements ProjectRepo {
     }
 
     @Override
+    public List<Project> findByUser(User user) throws ProjectTrackerPersistingException {
+        try(Session session = sessionFactory.openSession()) {
+            Query<Project> query = session.createQuery("""
+                    SELECT DISTINCT p FROM Project p
+                    LEFT JOIN FETCH p.employees e
+                    LEFT JOIN p.manager m
+                    WHERE m.id = :userId OR e.id = :userId
+                    """, Project.class);
+            query.setParameter("userId", user.getId());
+
+            return query.getResultList();
+        }
+    }
+
+    @Override
     public Optional<Project> save(Project project) throws ProjectTrackerPersistingException {
         try(Session session = sessionFactory.openSession()) {
             session.beginTransaction();
+
             session.persist(project);
             session.flush();
 
             session.getTransaction().commit();
+
             return Optional.ofNullable(project);
         }
     }
 
     @Override
-    public Optional<Project> delete(Long id) throws ProjectTrackerPersistingException {
+    public Optional<Project> delete(Project project) throws ProjectTrackerPersistingException {
         try(Session session = sessionFactory.openSession()) {
-            Project projectDelete = session.find(Project.class, id);
-
-            if (projectDelete == null) {
-                return Optional.empty();
-            }
             session.beginTransaction();
 
-            session.remove(projectDelete);
+            session.remove(project);
 
             session.getTransaction().commit();
 
-            return Optional.ofNullable(projectDelete);
-        }
-    }
-
-    @Override
-    public Optional<Project> deleteByProject(Project project) throws ProjectTrackerPersistingException {
-        try(Session session = sessionFactory.openSession()) {
-            Project projectDelete = session.find(Project.class, project.getId());
-
-            if (projectDelete == null) {
-                return Optional.empty();
-            }
-
-            session.beginTransaction();
-            session.remove(projectDelete);
-
-            session.getTransaction().commit();
-            return Optional.ofNullable(projectDelete);
+            return Optional.of(project);
         }
     }
 
@@ -82,55 +84,11 @@ public class ProjectHibernateRepo implements ProjectRepo {
         try(Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
-            Project existingProject = session.find(Project.class, project.getId());
-            if (existingProject == null) {
-                return Optional.empty();
-            }
-
-            if (project.getName() != null) {
-                existingProject.setName(project.getName());
-            }
-
-            if (project.getDescription() != null) {
-                existingProject.setDescription(project.getDescription());
-            }
-
-            if (project.getStatus() != null) {
-                existingProject.setStatus(project.getStatus());
-            }
-
-            if (project.getPriority() > 0 && project.getPriority() < 11) {
-                existingProject.setPriority(project.getPriority());
-            }
-
-            if (project.getCreatedAt() != null) {
-                existingProject.setCreatedAt(project.getCreatedAt());
-            }
-
-            if (project.getUpdatedAt() != null) {
-                existingProject.setUpdatedAt(project.getUpdatedAt());
-            }
-
-            if (project.getManager() != null) {
-                existingProject.setManager(project.getManager());
-            }
-
-            if (project.getDeadline() != null) {
-                existingProject.setDeadline(project.getDeadline());
-            }
-
-            if (project.getEmployees() != null) {
-                existingProject.setEmployees(project.getEmployees());
-            }
-
-            if (project.getTasks() != null) {
-                existingProject.setTasks(project.getTasks());
-            }
-
-            session.merge(existingProject);
+            session.merge(project);
 
             session.getTransaction().commit();
-            return Optional.ofNullable(existingProject);
+
+            return Optional.of(project);
         }
     }
 }

@@ -4,27 +4,31 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.springframework.stereotype.Repository;
 import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.model.user.User;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RequiredArgsConstructor
+@Repository
 public class UserHibernateRepo implements UserRepo {
     private final SessionFactory sessionFactory;
 
     @Override
     public Optional<User> find(Long id) throws ProjectTrackerPersistingException {
         try (Session session = sessionFactory.openSession()) {
-            return Optional.ofNullable(session.find(User.class, id));
+            session.beginTransaction();
+            User user = session.get(User.class, id);
+            session.getTransaction().commit();
+            return Optional.ofNullable(user);
         }
     }
 
     @Override
     public Optional<User> findByEmail(String email) throws ProjectTrackerPersistingException {
         try (Session session = sessionFactory.openSession()) {
-            Query query = session.createQuery("from User where email = :email");
+            Query<User> query = session.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class);
             query.setParameter("email", email);
             return Optional.ofNullable((User) query.uniqueResult());
         }
@@ -33,45 +37,22 @@ public class UserHibernateRepo implements UserRepo {
     @Override
     public Optional<User> findByNickname(String nickname) throws ProjectTrackerPersistingException {
         try (Session session = sessionFactory.openSession()) {
-            Query query = session.createQuery("from User where nickname = :nickname");
+            Query<User> query = session.createQuery("SELECT u FROM User u WHERE u.nickname = :nickname", User.class);
             query.setParameter("nickname", nickname);
             return Optional.ofNullable((User) query.uniqueResult());
         }
     }
 
     @Override
-    public Optional<User> delete(Long id) throws ProjectTrackerPersistingException {
+    public Optional<User> delete(User user) throws ProjectTrackerPersistingException {
         try (Session session = sessionFactory.openSession()) {
-            User userDelete = session.find(User.class, id);
-
-            if (userDelete == null) {
-                return Optional.empty();
-            }
-
             session.beginTransaction();
 
-            session.remove(userDelete);
+            session.remove(user);
 
             session.getTransaction().commit();
 
-            return Optional.ofNullable(userDelete);
-        }
-    }
-
-    @Override
-    public Optional<User> deleteByUser(User user) throws ProjectTrackerPersistingException {
-        try (Session session = sessionFactory.openSession()) {
-            User userDelete = session.find(User.class, user.getId());
-
-            if (userDelete == null) {
-                return Optional.empty();
-            }
-
-            session.beginTransaction();
-            session.remove(userDelete);
-
-            session.getTransaction().commit();
-            return Optional.ofNullable(userDelete);
+            return Optional.of(user);
         }
     }
 
@@ -84,6 +65,7 @@ public class UserHibernateRepo implements UserRepo {
             session.flush();
 
             session.getTransaction().commit();
+
             return Optional.ofNullable(user);
         }
     }
@@ -93,54 +75,11 @@ public class UserHibernateRepo implements UserRepo {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
-            User existingUser = session.find(User.class, user.getId());
-            if (existingUser == null) {
-                return Optional.empty();
-            }
-
-            if (user.getNickname() != null) {
-                existingUser.setNickname(user.getNickname());
-            }
-
-            if (user.getFirstName() != null) {
-                existingUser.setFirstName(user.getFirstName());
-            }
-
-            if (user.getLastName() != null) {
-                existingUser.setLastName(user.getLastName());
-            }
-
-            if (user.getPhoneNumber() != null) {
-                existingUser.setPhoneNumber(user.getPhoneNumber());
-            }
-
-            if (user.getEmail() != null) {
-                existingUser.setEmail(user.getEmail());
-            }
-
-            if (user.getPassword() != null) {
-                existingUser.setPassword(user.getPassword());
-            }
-
-            if (user.getRole() != null) {
-                existingUser.setRole(user.getRole());
-            }
-
-            if (user.getRegisteredAt() != null) {
-                existingUser.setRegisteredAt(user.getRegisteredAt());
-            }else {
-                existingUser.setRegisteredAt(LocalDateTime.now());
-            }
-
-            if (user.getLastLoginAt() != null) {
-                existingUser.setLastLoginAt(user.getLastLoginAt());
-            }
-
-            session.merge(existingUser);
+            session.merge(user);
 
             session.getTransaction().commit();
 
-            return Optional.ofNullable(existingUser);
+            return Optional.of(user);
         }
     }
 }

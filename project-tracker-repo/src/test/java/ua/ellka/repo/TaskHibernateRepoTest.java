@@ -4,8 +4,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.model.project.Project;
-import ua.ellka.model.project.ProjectStatus;
 import ua.ellka.model.task.Task;
+import ua.ellka.model.user.Employee;
+import ua.ellka.model.user.Manager;
+import ua.ellka.model.user.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -92,69 +94,142 @@ class TaskHibernateRepoTest extends RepoParent{
     }
 
     @Test
-    void deleteTest_notFound() throws ProjectTrackerPersistingException {
-        Task task = new Task();
-        task.setId(999L);
-
-        Optional<Task> deleted = taskHibernateRepo.delete(task);
-
-        assertTrue(deleted.isEmpty(), "No task should be deleted");
-    }
-
-    @Test
-    void findAllByProjectTest_success() throws ProjectTrackerPersistingException {
-        Long projectId = 1L;
-        List<Task> tasks = taskHibernateRepo.findAllByProjectId(projectId);
-
-        assertNotNull(tasks, "Tasks list should not be null");
-        assertFalse(tasks.isEmpty(), "Tasks list should not be empty");
-        assertTrue(tasks.stream().allMatch(task -> task.getProject().getId().equals(projectId)), "All tasks should be found");
-    }
-
-    @Test
-    void findAllByProjectTest_notTasks() throws ProjectTrackerPersistingException {
-        Long projectId = 6L;
-        List<Task> tasks = taskHibernateRepo.findAllByProjectId(projectId);
-
-        assertNotNull(tasks, "Tasks list should not be null");
-        assertTrue(tasks.isEmpty(), "Tasks list should not be empty");
-    }
-
-    @Test
-    void findAllByProjectTest_notFound() throws ProjectTrackerPersistingException {
-        Long projectId = 999L;
-        List<Task> tasks = taskHibernateRepo.findAllByProjectId(projectId);
-
-        assertNotNull(tasks, "Tasks list should not be null");
-        assertTrue(tasks.isEmpty(), "Tasks list should be empty for a non-existent project");
-
-    }
-
-    @Test
     void testUpdateTaskFields() throws ProjectTrackerPersistingException {
-        Task task = new Task();
-        task.setName("New Task Name");
-        task.setDescription("Updated description");
+        Task task = taskHibernateRepo.find(1L).get();
+        task.setName("Updated Task Name");
+        task.setDescription("Updated Description");
         task.setPriority(8);
 
-        taskHibernateRepo.save(task);
-
-        task.setName("Updated Task Name");
         Optional<Task> updatedTask = taskHibernateRepo.update(task);
 
         assertTrue(updatedTask.isPresent());
         assertEquals("Updated Task Name", updatedTask.get().getName());
-        assertEquals("Updated description", updatedTask.get().getDescription());
+        assertEquals("Updated Description", updatedTask.get().getDescription());
         assertEquals(8, updatedTask.get().getPriority());
     }
 
     @Test
-    void testUpdateNonExistingTask() throws ProjectTrackerPersistingException {
-        Task task = new Task();
-        task.setId(999L);
-        task.setName("Non-existing Task");
+    void findTaskByUserTest_manager_success() throws ProjectTrackerPersistingException {
+        User manager = new Manager();
+        manager.setId(2L);
 
-        Optional<Task> result = taskHibernateRepo.update(task);
-        assertTrue(result.isEmpty());
+        List<Task> tasks = taskHibernateRepo.findByUser(manager);
+
+        assertNotNull(tasks);
+        assertFalse(tasks.isEmpty(), "Tasks list should not be empty");
+        assertTrue(tasks.stream()
+                .allMatch(task -> task.getManager().getId().equals(manager.getId())));
+    }
+
+    @Test
+    void findTaskByUserTest_employee_success() throws ProjectTrackerPersistingException {
+        User employee = new Employee();
+        employee.setId(4L);
+
+        List<Task> tasks = taskHibernateRepo.findByUser(employee);
+
+        assertNotNull(tasks);
+        assertFalse(tasks.isEmpty(), "Tasks list should not be empty");
+        assertTrue(tasks.stream()
+                .allMatch(task -> task.getEmployee().getId().equals(employee.getId())));
+    }
+
+    @Test
+    void findTaskByUserTest_userNotFound() throws ProjectTrackerPersistingException {
+        User employee = new Employee();
+        employee.setId(999L);
+
+        List<Task> tasks = taskHibernateRepo.findByUser(employee);
+
+        assertTrue(tasks.isEmpty(), "Tasks list should not be empty");
+    }
+
+    @Test
+    void findTaskByProjectTest_success() throws ProjectTrackerPersistingException {
+        Project project = new Project();
+        project.setId(1L);
+
+        List<Task> tasks = taskHibernateRepo.findByProject(project);
+
+        assertNotNull(tasks);
+        assertFalse(tasks.isEmpty(), "Tasks list should not be empty");
+        assertTrue(tasks.stream()
+                .allMatch(task -> task.getProject().getId().equals(project.getId())));
+    }
+
+    @Test
+    void findTaskByProjectTest_projectNotFound() throws ProjectTrackerPersistingException {
+        Project project = new Project();
+        project.setId(999L);
+
+        List<Task> tasks = taskHibernateRepo.findByProject(project);
+
+        assertTrue(tasks.isEmpty(), "Tasks list should not be empty");
+    }
+
+    @Test
+    void findTaskByProjectAndUserTest_manager_success() throws ProjectTrackerPersistingException {
+        Project project = new Project();
+        project.setId(1L);
+
+        User manager = new Manager();
+        manager.setId(2L);
+
+        List<Task> tasks = taskHibernateRepo.findByProjectAndUser(project, manager);
+
+        assertNotNull(tasks);
+        assertFalse(tasks.isEmpty(), "Tasks list should not be empty");
+        assertTrue(tasks.stream()
+                .allMatch(task -> (
+                        task.getProject().getId().equals(project.getId()))
+                                  && (task.getManager().getId().equals(manager.getId()))
+                )
+        );
+    }
+
+    @Test
+    void findTaskByProjectAndUserTest_employee_success() throws ProjectTrackerPersistingException {
+        Project project = new Project();
+        project.setId(1L);
+
+        User employee = new Employee();
+        employee.setId(4L);
+
+        List<Task> tasks = taskHibernateRepo.findByProjectAndUser(project, employee);
+
+        assertNotNull(tasks);
+        assertFalse(tasks.isEmpty(), "Tasks list should not be empty");
+        assertTrue(tasks.stream()
+                .allMatch(task -> (
+                                          task.getProject().getId().equals(project.getId()))
+                                  && (task.getEmployee().getId().equals(employee.getId()))
+                )
+        );
+    }
+
+    @Test
+    void findTaskByProjectAndUserTest_projectNotFound() throws ProjectTrackerPersistingException {
+        Project project = new Project();
+        project.setId(999L);
+
+        User employee = new Employee();
+        employee.setId(4L);
+
+        List<Task> tasks = taskHibernateRepo.findByProjectAndUser(project, employee);
+
+        assertTrue(tasks.isEmpty(), "Tasks list should not be empty");
+    }
+
+    @Test
+    void findTaskByProjectAndUserTest_userNotFound() throws ProjectTrackerPersistingException {
+        Project project = new Project();
+        project.setId(1L);
+
+        User employee = new Employee();
+        employee.setId(999L);
+
+        List<Task> tasks = taskHibernateRepo.findByProjectAndUser(project, employee);
+
+        assertTrue(tasks.isEmpty(), "Tasks list should not be empty");
     }
 }

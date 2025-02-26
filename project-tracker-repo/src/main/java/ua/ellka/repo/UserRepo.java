@@ -38,22 +38,13 @@ public interface UserRepo {
     Optional<User> findByNickname(String nickname) throws ProjectTrackerPersistingException;
 
     /**
-     * Deletes a user by ID.
-     *
-     * @param id the ID of the user to delete.
-     * @return an Optional containing the deleted user or empty if not found.
-     * @throws ProjectTrackerPersistingException if any persisting error occurs.
-     */
-    Optional<User> delete(Long id) throws ProjectTrackerPersistingException;
-
-    /**
      * Deletes a user by User.
      *
      * @param user the user to delete.
      * @return an Optional containing the deleted user or empty if not found.
      * @throws ProjectTrackerPersistingException if any persisting error occurs.
      */
-    Optional<User> deleteByUser(User user) throws ProjectTrackerPersistingException;
+    Optional<User> delete(User user) throws ProjectTrackerPersistingException;
 
     /**
      * Saves a user to the database.
