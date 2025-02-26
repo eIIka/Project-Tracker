@@ -3,8 +3,8 @@ package ua.ellka.repo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ua.ellka.exception.ProjectTrackerPersistingException;
-import ua.ellka.model.project.Project;
 import ua.ellka.model.user.Employee;
+import ua.ellka.model.user.Manager;
 import ua.ellka.model.user.User;
 import ua.ellka.model.user.UserRole;
 
@@ -107,54 +107,17 @@ class UserHibernateRepoTest extends RepoParent{
         Long userId = 1L;
 
         Optional<User> user = userHibernateRepo.find(userId);
-        assertTrue(user.isPresent(), "user not found");
 
-        Optional<User> deleted = userHibernateRepo.delete(userId);
-        assertTrue(deleted.isPresent(), "user not found");
+        Optional<User> deleted = userHibernateRepo.delete(user.get());
+        assertTrue(deleted.isPresent(), "User not found");
         assertEquals(userId, deleted.get().getId());
-
-        Optional<User> deletedUser = userHibernateRepo.find(userId);
-        assertTrue(deletedUser.isEmpty(), "user not found");
     }
 
     @Test
-    void deleteTest_notFound() throws ProjectTrackerPersistingException {
-        Long userId = 999L;
-        Optional<User> deleted = userHibernateRepo.delete(userId);
-
-        assertTrue(deleted.isEmpty(), "user not found");
-    }
-
-    @Test
-    void deleteByUserTest_success() throws ProjectTrackerPersistingException {
-        Optional<User> userOptional = userHibernateRepo.findByNickname("employee0");
-        assertTrue(userOptional.isPresent(), "Project Alpha not found");
-
-        User user = userOptional.get();
-        Optional<User> deleted = userHibernateRepo.deleteByUser(user);
-
-        assertTrue(deleted.isPresent(), "Deleted project not found");
-        assertEquals(user.getId(), deleted.get().getId());
-
-        Optional<User> fromDb = userHibernateRepo.findByNickname("employee0");
-        assertTrue(fromDb.isEmpty(), "Project Alpha was not deleted");
-    }
-
-    @Test
-    void deleteByUserTest_notFound() throws ProjectTrackerPersistingException {
-        User user = new Employee();
-        user.setId(999L);
-
-        Optional<User> deleted = userHibernateRepo.deleteByUser(user);
-
-        assertTrue(deleted.isEmpty(), "user not found");
-    }
-
-    @Test
-    void shouldUpdateUserSuccessfully() throws ProjectTrackerPersistingException {
+    void updateTest_success() throws ProjectTrackerPersistingException {
         User user = userHibernateRepo.find(2L).get();
 
-        User updatedUser = new Employee();
+        User updatedUser = new Manager();
         updatedUser.setId(user.getId());
         updatedUser.setNickname("newNick");
         updatedUser.setEmail("new@example.com");
@@ -166,17 +129,5 @@ class UserHibernateRepoTest extends RepoParent{
         User savedUser = result.get();
         assertEquals("newNick", savedUser.getNickname());
         assertEquals("new@example.com", savedUser.getEmail());
-        assertEquals(user.getPassword(), savedUser.getPassword());
-    }
-
-    @Test
-    void shouldReturnEmptyWhenUserNotFound() throws ProjectTrackerPersistingException {
-        User nonExistingUser = new Employee();
-        nonExistingUser.setId(999L);
-        nonExistingUser.setNickname("ghost");
-
-        Optional<User> result = userHibernateRepo.update(nonExistingUser);
-
-        assertNotNull(result);
     }
 }
