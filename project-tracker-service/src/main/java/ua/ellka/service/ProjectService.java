@@ -17,25 +17,26 @@ public interface ProjectService {
     /**
      * Updates an existing project.
      *
+     * @param id the project id transfer object with updated information.
      * @param projectDTO the project data transfer object with updated information.
      * @return the updated project.
      */
-    ProjectDTO updateProject(ProjectDTO projectDTO);
+    ProjectDTO updateProject(Long id, ProjectDTO projectDTO);
 
     /**
      * Deletes a project.
      *
-     * @param projectDTO the project to delete.
+     * @param id the project ID to delete.
      * @return the deleted project.
      */
-    ProjectDTO deleteProject(ProjectDTO projectDTO);
+    ProjectDTO deleteProject(Long id);
 
     /**
      * Retrieves all projects.
      *
      * @return a list of all projects.
      */
-    //List<ProjectDTO> getAllProjects();
+    List<ProjectDTO> getAllProjectsByUserId(Long userId);
 
     /**
      * Retrieves a project by ID.

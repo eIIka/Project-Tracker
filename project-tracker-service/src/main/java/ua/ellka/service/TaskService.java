@@ -20,7 +20,7 @@ public interface TaskService {
      * @param taskDTO the task data transfer object with updated information.
      * @return the updated task.
      */
-    TaskDTO updateTask(TaskDTO taskDTO);
+    TaskDTO updateTask(Long id, TaskDTO taskDTO);
 
     /**
      * Retrieves a task by ID.
@@ -36,7 +36,11 @@ public interface TaskService {
      * @param projectId the project ID.
      * @return a list of tasks related to the project.
      */
-    //List<TaskDTO> getAllTasksByProjectId(Long projectId);
+    List<TaskDTO> getAllTasksByProjectId(Long projectId);
+
+    List<TaskDTO> getAllTasksByUserId(Long userId);
+
+    List<TaskDTO> getAllTasksByProjectIdAndUserId(Long projectId, Long userId);
 
     /**
      * Deletes a task by ID.
