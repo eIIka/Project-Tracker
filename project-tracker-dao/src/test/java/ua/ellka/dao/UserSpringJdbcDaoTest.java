@@ -130,7 +130,6 @@ class UserSpringJdbcDaoTest extends DaoTestParent{
         testUser.setEmail("test@gmail.com");
         testUser.setPassword("test password");
         testUser.setNickname("test nickname");
-        testUser.setRole(UserRole.EMPLOYEE);
         testUser.setPhoneNumber("1234567843");
 
         Optional<User> user = userDao.save(testUser);
@@ -141,19 +140,17 @@ class UserSpringJdbcDaoTest extends DaoTestParent{
         assertEquals(testUser.getEmail(), user.get().getEmail());
         assertEquals(testUser.getPassword(), user.get().getPassword());
         assertEquals(testUser.getNickname(), user.get().getNickname());
-        assertEquals(testUser.getRole(), user.get().getRole());
         assertEquals(testUser.getPhoneNumber(), user.get().getPhoneNumber());
     }
 
     @Test
     void saveTest_ifEmailAlreadyExistsThrowsException() throws DaoException {
         User testUser = new Employee();
+        testUser.setNickname("test nickname");
         testUser.setFirstName("test first name");
         testUser.setLastName("test last name");
         testUser.setEmail("ellka@gmail.com");
         testUser.setPassword("test password");
-        testUser.setNickname("test nickname");
-        testUser.setRole(UserRole.EMPLOYEE);
         testUser.setPhoneNumber("1234567843");
 
         assertThrows(DuplicateKeyException.class, () -> userDao.save(testUser));
@@ -167,7 +164,6 @@ class UserSpringJdbcDaoTest extends DaoTestParent{
         testUser.setEmail("test@gmail.com");
         testUser.setPassword("test password");
         testUser.setNickname("ellka");
-        testUser.setRole(UserRole.EMPLOYEE);
         testUser.setPhoneNumber("1234567843");
 
         assertThrows(DuplicateKeyException.class, () -> userDao.save(testUser));
@@ -181,7 +177,6 @@ class UserSpringJdbcDaoTest extends DaoTestParent{
         testUser.setEmail("test@gmail.com");
         testUser.setPassword("test password");
         testUser.setNickname("test nickname");
-        testUser.setRole(UserRole.EMPLOYEE);
         testUser.setPhoneNumber("0688228575");
 
         assertThrows(DuplicateKeyException.class, () -> userDao.save(testUser));
@@ -195,7 +190,6 @@ class UserSpringJdbcDaoTest extends DaoTestParent{
         testUser.setEmail("test@gmail.com");
         testUser.setPassword("test password");
         testUser.setNickname("test nickname");
-        testUser.setRole(UserRole.MANAGER);
         testUser.setPhoneNumber("0688228512");
 
         Long testUpdateById = 1L;
@@ -220,7 +214,6 @@ class UserSpringJdbcDaoTest extends DaoTestParent{
         testUser.setEmail("ellka@gmail.com");
         testUser.setPassword("test password");
         testUser.setNickname("test nickname");
-        testUser.setRole(UserRole.MANAGER);
         testUser.setPhoneNumber("0688228512");
 
         Long testUpdateById = 1L;
@@ -236,7 +229,6 @@ class UserSpringJdbcDaoTest extends DaoTestParent{
         testUser.setEmail("test@gmail.com");
         testUser.setPassword("test password");
         testUser.setNickname("ellka");
-        testUser.setRole(UserRole.MANAGER);
         testUser.setPhoneNumber("0688228512");
 
         Long testUpdateById = 1L;
@@ -252,7 +244,6 @@ class UserSpringJdbcDaoTest extends DaoTestParent{
         testUser.setEmail("test@gmail.com");
         testUser.setPassword("test password");
         testUser.setNickname("test nickname");
-        testUser.setRole(UserRole.MANAGER);
         testUser.setPhoneNumber("0688228575");
 
         Long testUpdateById = 1L;

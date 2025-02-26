@@ -18,7 +18,7 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
+<maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.projectlombok.version>1.18.36</org.projectlombok.version>
@@ -31,6 +31,9 @@
         <jpa.version>3.2.0</jpa.version>
         <h2.version>2.3.232</h2.version>
         <spring.version>6.2.2</spring.version>
+        <jakarta.servlet.version>6.1.0</jakarta.servlet.version>
+        <jackson.datatype.version>2.18.2</jackson.datatype.version>
+        <org.modelmapper.version>3.2.2</org.modelmapper.version>
     </properties>
 
     <dependencyManagement>
@@ -97,6 +100,22 @@
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${jakarta.servlet.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-jsr310</artifactId>
+                <version>${jackson.datatype.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
                 <artifactId>spring-jdbc</artifactId>
                 <version>${spring.version}</version>
             </dependency>
@@ -109,6 +128,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
                     <configuration>
                         <source>21</source>
                         <target>21</target>

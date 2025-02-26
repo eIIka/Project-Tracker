@@ -38,7 +38,7 @@ public class TestData {
         employee.setRegisteredAt(LocalDateTime.now());
         employee.setLastLoginAt(LocalDateTime.now());
         employee.setProjects(Set.of(new Project()));
-        employee.setTasks(Set.of(new Task(), new Task(), new Task()));
+        employee.setTasks(Set.of(new Task()));
         return employee;
     }
 
@@ -51,7 +51,7 @@ public class TestData {
         employeeDTO.setEmail(EMAIL);
         employeeDTO.setPhoneNumber(PHONE_NUMBER);
         employeeDTO.setProjectCount(1L);
-        employeeDTO.setTaskCount(3L);
+        employeeDTO.setTaskCount(1L);
         return employeeDTO;
     }
 

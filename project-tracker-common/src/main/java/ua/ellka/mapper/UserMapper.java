@@ -11,26 +11,26 @@ import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
 import ua.ellka.model.user.UserRole;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+import java.util.Set;
+
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = "spring")
 public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    @Mapping(target = "taskCount", expression = "java(employee.getTasks() != null ? (long) employee.getTasks().size() : 0L)")
-    @Mapping(target = "projectCount", expression = "java(employee.getProjects() != null ? (long) employee.getProjects().size() : 0L)")
-    EmployeeDTO employeeToEmployeeDTO(Employee employee);
-
-    @Mapping(source = "role", target = "role", qualifiedByName = "mapStatus")
-    Employee employeeDTOToEmployee(EmployeeDTO employeeDTO);
-
-    @Mapping(target = "projectCount", expression = "java(manager.getProjects() != null ? (long) manager.getProjects().size() : 0L)")
-    ManagerDTO managerToManagerDTO(Manager manager);
-
-    @Mapping(source = "role", target = "role", qualifiedByName = "mapStatus")
-    Manager managerDTOToManager(ManagerDTO managerDTO);
-
-    @Named("mapStatus")
-    default UserRole mapStatus(String role) {
-        return UserRole.fromString(role);
+    default Long mapCount(Set<?> collection) {
+        return collection != null ? (long) collection.size() : 0L;
     }
 
+    @Mapping(target = "taskCount", expression = "java(mapCount(employee.getTasks()))")
+    @Mapping(target = "projectCount", expression = "java(mapCount(employee.getProjects()))")
+    @Mapping(target = "role", expression = "java(employee.getRole().getRole())")
+    EmployeeDTO employeeToEmployeeDTO(Employee employee);
+
+    Employee employeeDTOToEmployee(EmployeeDTO employeeDTO);
+
+    @Mapping(target = "projectCount", expression = "java(mapCount(manager.getProjects()))")
+    @Mapping(target = "role", expression = "java(manager.getRole().getRole())")
+    ManagerDTO managerToManagerDTO(Manager manager);
+
+    Manager managerDTOToManager(ManagerDTO managerDTO);
 }

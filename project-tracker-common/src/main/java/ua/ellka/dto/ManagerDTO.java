@@ -10,6 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ManagerDTO extends UserDTO {
+    private Long taskCount;
     private Long projectCount;
 
     @Override
