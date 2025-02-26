@@ -10,7 +10,7 @@ import ua.ellka.model.project.Project;
 import ua.ellka.model.project.ProjectStatus;
 import ua.ellka.model.user.Manager;
 
-@Mapper (unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper (unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = "spring")
 public interface ProjectMapper {
     ProjectMapper INSTANCE = Mappers.getMapper(ProjectMapper.class);
 

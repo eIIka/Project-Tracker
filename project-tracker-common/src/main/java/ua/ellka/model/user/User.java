@@ -1,10 +1,7 @@
 package ua.ellka.model.user;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +9,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(of = {"id, nickname, email, phoneNumber, role"})
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -36,8 +34,7 @@ public abstract class User {
     private String password;
 
     @Column(name = "user_role", insertable = false, updatable = false)
-    @Convert(converter = UserRoleConvertor.class)
-    private UserRole role;
+    public abstract UserRole getRole();
 
     @Column(name = "registered_at")
     private LocalDateTime registeredAt;

@@ -24,11 +24,16 @@
         <org.projectlombok.version>1.18.36</org.projectlombok.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <org.junit.jupiter.version>5.11.3</org.junit.jupiter.version>
+        <org.mockito.version>5.14.2</org.mockito.version>
         <mysql.version>9.1.0</mysql.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <hibernate.version>6.6.4.Final</hibernate.version>
         <jpa.version>3.2.0</jpa.version>
         <h2.version>2.3.232</h2.version>
+        <spring.version>6.2.2</spring.version>
+        <jakarta.servlet.version>6.1.0</jakarta.servlet.version>
+        <jackson.datatype.version>2.18.2</jackson.datatype.version>
+        <org.modelmapper.version>3.2.2</org.modelmapper.version>
     </properties>
 
     <dependencyManagement>
@@ -48,6 +53,12 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-api</artifactId>
                 <version>${org.junit.jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${org.mockito.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -71,6 +82,38 @@
                 <version>${h2.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${spring.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${jakarta.servlet.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-jsr310</artifactId>
+                <version>${jackson.datatype.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -80,6 +123,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
                     <configuration>
                         <source>21</source>
                         <target>21</target>

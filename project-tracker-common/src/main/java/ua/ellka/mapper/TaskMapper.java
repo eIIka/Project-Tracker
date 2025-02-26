@@ -12,7 +12,7 @@ import ua.ellka.model.task.TaskStatus;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
 
-@Mapper (unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper (unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = "spring")
 public interface TaskMapper {
     TaskMapper INSTANCE = Mappers.getMapper(TaskMapper.class);
 

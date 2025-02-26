@@ -1,10 +1,7 @@
 package ua.ellka.model.task;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import ua.ellka.model.project.Project;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
@@ -20,6 +17,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(of = {"id, name, manager, project, description"})
 @Entity
 @Table(name = "task")
 public class Task {

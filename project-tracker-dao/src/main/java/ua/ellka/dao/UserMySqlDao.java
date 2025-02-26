@@ -47,7 +47,6 @@ public class UserMySqlDao implements UserDao {
                 user.setPhoneNumber(resultSet.getString("phone_number"));
                 user.setEmail(resultSet.getString("email"));
                 user.setPassword(resultSet.getString("password"));
-                user.setRole(userRole);
                 user.setRegisteredAt(resultSet.getObject("registered_at", LocalDateTime.class));
                 user.setLastLoginAt(resultSet.getObject("last_login_at", LocalDateTime.class));
                 users.add(user);
@@ -232,7 +231,7 @@ public class UserMySqlDao implements UserDao {
 
         try(PreparedStatement statement =
                     connection.prepareStatement(
-                            "UPDATE users SET nickname = ?, first_name = ?, last_name = ?, phone_number = ?, email = ?, password = ?, user_role = ? WHERE id = ?"
+                            "UPDATE users SET nickname = ?, first_name = ?, last_name = ?, phone_number = ?, email = ?, password = ? WHERE id = ?"
                     )
         ){
             statement.setString(1, user.getNickname());
@@ -241,8 +240,7 @@ public class UserMySqlDao implements UserDao {
             statement.setString(4, user.getPhoneNumber());
             statement.setString(5, user.getEmail());
             statement.setString(6, user.getPassword());
-            statement.setString(7, user.getRole().toString());
-            statement.setLong(8, id);
+            statement.setLong(7, id);
 
             int rowsAffected = statement.executeUpdate();
             if (rowsAffected > 0) {
@@ -274,7 +272,6 @@ public class UserMySqlDao implements UserDao {
         user.setPhoneNumber(resultSet.getString("phone_number"));
         user.setEmail(resultSet.getString("email"));
         user.setPassword(resultSet.getString("password"));
-        user.setRole(userRole);
         user.setRegisteredAt(resultSet.getObject("registered_at", LocalDateTime.class));
         user.setLastLoginAt(resultSet.getObject("last_login_at", LocalDateTime.class));
 
