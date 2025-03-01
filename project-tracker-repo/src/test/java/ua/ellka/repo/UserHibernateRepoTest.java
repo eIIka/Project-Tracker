@@ -115,13 +115,12 @@ class UserHibernateRepoTest extends RepoParent{
 
     @Test
     void updateTest_success() throws ProjectTrackerPersistingException {
-        User user = userHibernateRepo.find(2L).get();
 
-        User updatedUser = new Manager();
-        updatedUser.setId(user.getId());
+        User updatedUser = new Employee();
+        updatedUser.setId(4L);
         updatedUser.setNickname("newNick");
         updatedUser.setEmail("new@example.com");
-        updatedUser.setRegisteredAt(LocalDateTime.now());
+        updatedUser.setPhoneNumber("1234567123");
 
         Optional<User> result = userHibernateRepo.update(updatedUser);
 
