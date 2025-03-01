@@ -43,6 +43,16 @@ class TaskServiceImplTest {
 
     @Test
     void createTaskTest_success() throws ProjectTrackerPersistingException {
+        Employee employee = new Employee();
+        employee.setFirstName("Test");
+        employee.setLastName("Test");
+        employee.setNickname("Test Employee");
+
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+
         Project project = new Project();
         project.setName("Test Project");
         project.setDescription("Test Description");
@@ -54,6 +64,8 @@ class TaskServiceImplTest {
         testTaskDTO.setPriority(1);
         testTaskDTO.setStatus(TaskStatus.IN_PROGRESS.getStatus());
         testTaskDTO.setProjectName(project.getName());
+        testTaskDTO.setAssignedManager(manager.getNickname());
+        testTaskDTO.setAssignedEmployee(employee.getNickname());
 
         Task mockTask = new Task();
         mockTask.setId(1L);
@@ -62,6 +74,8 @@ class TaskServiceImplTest {
         mockTask.setPriority(1);
         mockTask.setStatus(TaskStatus.IN_PROGRESS);
 
+        when(userRepo.findByNickname("Test Employee")).thenReturn(Optional.of(employee));
+        when(userRepo.findByNickname("Test Manager")).thenReturn(Optional.of(manager));
         when(taskRepo.find(anyLong())).thenReturn(Optional.of(mockTask));
         when(projectRepo.findByName(anyString())).thenReturn(Optional.of(project));
         when(taskRepo.save(any())).thenReturn(Optional.of(mockTask));
