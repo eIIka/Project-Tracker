@@ -17,15 +17,19 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"id, name, manager, project, description"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "task")
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
+    @ToString.Include
     private String name;
+
     private String description;
 
     @Convert(converter = TaskStatusConvertor.class)
@@ -41,13 +45,13 @@ public class Task {
     private String type;
     private int priority;
 
-    @Column (name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    @Column (name = "update_at")
+    @Column(name = "update_at")
     private LocalDateTime updatedAt;
 
-    @Column (name = "end_date")
+    @Column(name = "end_date")
     private LocalDate endDate;
 
     private LocalDate deadline;

@@ -10,6 +10,7 @@ import ua.ellka.mapper.ProjectMapper;
 import ua.ellka.model.project.Project;
 import ua.ellka.model.project.ProjectStatus;
 import ua.ellka.model.user.Employee;
+import ua.ellka.model.user.Manager;
 import ua.ellka.model.user.User;
 import ua.ellka.repo.ProjectRepo;
 import ua.ellka.repo.UserRepo;
@@ -28,12 +29,16 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDTO createProject(ProjectDTO projectDTO) {
         try {
-            Optional<Project> projectById = projectRepo.find(projectDTO.getId());
-            projectById.ifPresent(project -> {
-                throw new ServiceException("Project already exists");
-            });
+            Manager manager = (Manager) userRepo.findByNickname(projectDTO.getManagerName())
+                    .orElseThrow(() -> new NotFoundServiceException("Manager not found"));
 
             Project project = projectMapper.projectDTOToProject(projectDTO);
+
+            if (manager.getProjects().contains(project)) {
+                throw new ServiceException("Project already exists");
+            }
+
+            project.setManager(manager);
 
             Optional<Project> savedProject = projectRepo.save(project);
             Project saved = savedProject.orElseThrow(() -> new ServiceException("Project could not be created"));
@@ -119,8 +124,11 @@ public class ProjectServiceImpl implements ProjectService {
                 throw new ServiceException("User is already assigned to this project");
             }
 
-            if (project.getEmployees().add(employee) && employee.getProjects().add(project)) {
-                projectRepo.update(project);
+            project.getEmployees().add(employee);
+            employee.getProjects().add(project);
+
+            if (project.getEmployees().contains(employee) && employee.getProjects().contains(project)) {
+                userRepo.update(employee);
                 return true;
             }
 
@@ -143,8 +151,11 @@ public class ProjectServiceImpl implements ProjectService {
                 throw new ServiceException("User is not assigned to this project");
             }
 
-            if (project.getEmployees().remove(employee) && employee.getProjects().remove(project)) {
-                projectRepo.update(project);
+            project.getEmployees().remove(employee);
+            employee.getProjects().remove(project);
+
+            if (!project.getEmployees().contains(employee) && !employee.getProjects().contains(project)) {
+                userRepo.update(employee);
                 return true;
             }
 

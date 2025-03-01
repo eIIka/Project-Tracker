@@ -74,12 +74,20 @@ public class ProjectServiceImplTest {
         testProjectDTO.setStatus("In Progress");
         testProjectDTO.setManagerName("Test Manager");
 
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+
         Project mockProject = new Project();
         mockProject.setId(1L);
         mockProject.setName(testProjectDTO.getName());
         mockProject.setDescription(testProjectDTO.getDescription());
         mockProject.setStatus(ProjectStatus.fromString(testProjectDTO.getStatus()));
 
+        mockProject.setManager(manager);
+        manager.getProjects().add(mockProject);
+
+        when(userRepo.findByNickname(anyString())).thenReturn(Optional.of(manager));
         when(projectRepo.find(anyLong())).thenReturn(Optional.of(mockProject));
         when(projectRepo.save(any())).thenReturn(Optional.of(mockProject));
 

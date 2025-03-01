@@ -11,13 +11,13 @@ import ua.ellka.model.project.Project;
 import ua.ellka.model.task.Task;
 import ua.ellka.model.task.TaskStatus;
 import ua.ellka.model.user.Employee;
+import ua.ellka.model.user.Manager;
 import ua.ellka.model.user.User;
 import ua.ellka.repo.ProjectRepo;
 import ua.ellka.repo.TaskRepo;
 import ua.ellka.repo.UserRepo;
 
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -27,7 +27,6 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
     private final UserRepo userRepo;
     private final ProjectRepo projectRepo;
-
 
     @Override
     public TaskDTO createTask(TaskDTO taskDTO) {
@@ -41,6 +40,16 @@ public class TaskServiceImpl implements TaskService {
             if (tasksInProject.contains(task)) {
                     throw new ServiceException("Task already exists in this project");
             }
+
+            Employee employee = (Employee) userRepo.findByNickname(taskDTO.getAssignedEmployee())
+                    .orElseThrow(() -> new NotFoundServiceException("Employee not found"));
+
+            Manager manager = (Manager) userRepo.findByNickname(taskDTO.getAssignedManager())
+                    .orElseThrow(() -> new NotFoundServiceException("Manager not found"));
+
+            task.setProject(project);
+            task.setManager(manager);
+            task.setEmployee(employee);
 
             Task saved = taskRepo.save(task)
                     .orElseThrow(() -> new ServiceException("Task could not be saved"));
@@ -145,7 +154,7 @@ public class TaskServiceImpl implements TaskService {
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
 
             Task deleted = taskRepo.delete(task)
-                    .orElseThrow(() -> new NotFoundServiceException("Task could not be deleted"));
+                    .orElseThrow(() -> new ServiceException("Task could not be deleted"));
 
             return taskMapper.taskToTaskDTO(deleted);
         } catch (ProjectTrackerPersistingException e) {
@@ -188,7 +197,7 @@ public class TaskServiceImpl implements TaskService {
             Employee employee = (Employee) userRepo.find(userId)
                     .orElseThrow(() -> new NotFoundServiceException("Employee not found"));
 
-            if (!employee.equals(task.getEmployee()) || !employee.getTasks().contains(task)) {
+            if (task.getEmployee() == null || !task.getEmployee().equals(employee) || !employee.getTasks().contains(task)) {
                 throw new ServiceException("Employee is not assigned to task");
             }
 
