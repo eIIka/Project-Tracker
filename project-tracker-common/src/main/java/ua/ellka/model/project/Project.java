@@ -1,10 +1,7 @@
 package ua.ellka.model.project;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import ua.ellka.model.task.Task;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
@@ -18,22 +15,27 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "project")
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
+    @ToString.Include
     private String name;
+
     private String description;
     private int priority;
 
     @Convert(converter = ProjectStatusConvertor.class)
     private ProjectStatus status;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @Column(name = "update_at")
     private LocalDateTime updatedAt;
@@ -43,19 +45,22 @@ public class Project {
 
     private LocalDate deadline;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "manager_id")
     private Manager manager;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "project", cascade = {
+            CascadeType.PERSIST,
+            CascadeType.DETACH,
+            CascadeType.REMOVE
+    }, fetch = FetchType.EAGER)
     private Set<Task> tasks = new HashSet<>();
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinTable(
             name = "project_employees",
             joinColumns = @JoinColumn(name = "project_id"),
             inverseJoinColumns = @JoinColumn(name = "employee_id")
-
     )
     private Set<Employee> employees = new HashSet<>();
 }

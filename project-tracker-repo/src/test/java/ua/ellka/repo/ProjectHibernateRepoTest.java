@@ -83,8 +83,8 @@ public class ProjectHibernateRepoTest extends RepoParent {
 
     @Test
     void deleteByProjectTest_success() throws ProjectTrackerPersistingException {
-        Optional<Project> optionalProject = projectHibernateRepo.findByName("Project Alpha");
-        assertTrue(optionalProject.isPresent(), "Project Alpha not found");
+        Optional<Project> optionalProject = projectHibernateRepo.findByName("Project Beta");
+        assertTrue(optionalProject.isPresent(), "Project Beta not found");
 
         Project project = optionalProject.get();
         Optional<Project> deleted = projectHibernateRepo.delete(project);
@@ -92,8 +92,8 @@ public class ProjectHibernateRepoTest extends RepoParent {
         assertTrue(deleted.isPresent(), "Deleted project not found");
         assertEquals(project.getId(), deleted.get().getId());
 
-        Optional<Project> fromDb = projectHibernateRepo.findByName("Project Alpha");
-        assertTrue(fromDb.isEmpty(), "Project Alpha was not deleted");
+        Optional<Project> fromDb = projectHibernateRepo.findByName("Project Beta");
+        assertTrue(fromDb.isEmpty(), "Project Beta was not deleted");
     }
 
     @Test

@@ -15,6 +15,7 @@
         <module>project-tracker-dao</module>
         <module>project-tracker-repo</module>
         <module>project-tracker-service</module>
+        <module>project-tracker-web</module>
     </modules>
 
     <properties>
@@ -34,6 +35,10 @@
         <jakarta.servlet.version>6.1.0</jakarta.servlet.version>
         <jackson.datatype.version>2.18.2</jackson.datatype.version>
         <org.modelmapper.version>3.2.2</org.modelmapper.version>
+        <log4j.version>2.24.3</log4j.version>
+        <slf4j.version>2.0.16</slf4j.version>
+        <aspectj.version>1.9.22.1</aspectj.version>
+        <google.protobuf.version>4.29.3</google.protobuf.version>
     </properties>
 
     <dependencyManagement>
@@ -118,6 +123,36 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-jdbc</artifactId>
                 <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j2-impl</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjrt</artifactId>
+                <version>${aspectj.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${aspectj.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${google.protobuf.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

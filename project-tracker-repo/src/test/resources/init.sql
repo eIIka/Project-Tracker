@@ -16,7 +16,7 @@ create table users
     email VARCHAR(200),
     password VARCHAR(200),
     user_role ENUM ('Manager', 'Employee') not null default 'Employee',
-    registered_at DATETIME not null default CURRENT_TIMESTAMP,
+    registered_at DATETIME default CURRENT_TIMESTAMP,
     last_login_at DATETIME default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
     constraint users_email_unique unique (email),
     constraint users_phone_unique unique (phone_number)

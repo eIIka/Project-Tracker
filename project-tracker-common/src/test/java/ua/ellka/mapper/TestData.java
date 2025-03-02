@@ -66,7 +66,7 @@ public class TestData {
         manager.setPassword(PASSWORD);
         manager.setRegisteredAt(LocalDateTime.now());
         manager.setLastLoginAt(LocalDateTime.now());
-        manager.setProjects(Set.of(new Project(), new Project(), new Project(), new Project()));
+        manager.setProjects(Set.of(new Project()));
         return manager;
     }
 
@@ -77,7 +77,7 @@ public class TestData {
         managerDTO.setLastName(LAST_NAME);
         managerDTO.setEmail(EMAIL);
         managerDTO.setPhoneNumber(PHONE_NUMBER);
-        managerDTO.setProjectCount(4L);
+        managerDTO.setProjectCount(1L);
         return managerDTO;
     }
 

@@ -12,13 +12,23 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@ToString(callSuper = true, onlyExplicitlyIncluded = true)
 @Entity
 @DiscriminatorValue("Manager")
 public class Manager extends User {
-    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<Project> projects = new HashSet<>();
+    @OneToMany(mappedBy = "manager", cascade = {
+            CascadeType.PERSIST,
+            CascadeType.DETACH,
+            CascadeType.REMOVE
+    }, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<Project> projects = new HashSet<>();
 
-    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "manager", cascade = {
+            CascadeType.PERSIST,
+            CascadeType.DETACH,
+            CascadeType.REMOVE
+    }, orphanRemoval = true)
     private Set<Task> tasks = new HashSet<>();
 
     @Override

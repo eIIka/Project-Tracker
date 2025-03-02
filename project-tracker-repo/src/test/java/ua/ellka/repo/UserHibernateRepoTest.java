@@ -3,6 +3,7 @@ package ua.ellka.repo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ua.ellka.exception.ProjectTrackerPersistingException;
+import ua.ellka.model.task.Task;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
 import ua.ellka.model.user.User;
@@ -115,13 +116,12 @@ class UserHibernateRepoTest extends RepoParent{
 
     @Test
     void updateTest_success() throws ProjectTrackerPersistingException {
-        User user = userHibernateRepo.find(2L).get();
 
-        User updatedUser = new Manager();
-        updatedUser.setId(user.getId());
+        User updatedUser = new Employee();
+        updatedUser.setId(4L);
         updatedUser.setNickname("newNick");
         updatedUser.setEmail("new@example.com");
-        updatedUser.setRegisteredAt(LocalDateTime.now());
+        updatedUser.setPhoneNumber("1234567123");
 
         Optional<User> result = userHibernateRepo.update(updatedUser);
 
