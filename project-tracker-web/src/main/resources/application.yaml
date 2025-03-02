@@ -1,0 +1,16 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /app
+
+logging:
+  level:
+    org.springframework.boot: INFO
+    ua.ellka: DEBUG
+
+management:
+  endpoint:
+    beans:
+      access: read_only
+    metrics:
+      access: unrestricted
