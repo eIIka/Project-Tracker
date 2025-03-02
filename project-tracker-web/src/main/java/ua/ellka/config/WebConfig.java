@@ -7,7 +7,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import ua.ellka.web.interceptor.LoggingInterceptor;
 
 @Configuration
-@EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
