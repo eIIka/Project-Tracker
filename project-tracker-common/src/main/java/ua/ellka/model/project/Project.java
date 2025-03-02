@@ -45,14 +45,18 @@ public class Project {
 
     private LocalDate deadline;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "manager_id")
     private Manager manager;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.MERGE, orphanRemoval = true)
+    @OneToMany(mappedBy = "project", cascade = {
+            CascadeType.PERSIST,
+            CascadeType.DETACH,
+            CascadeType.REMOVE
+    }, fetch = FetchType.EAGER)
     private Set<Task> tasks = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinTable(
             name = "project_employees",
             joinColumns = @JoinColumn(name = "project_id"),

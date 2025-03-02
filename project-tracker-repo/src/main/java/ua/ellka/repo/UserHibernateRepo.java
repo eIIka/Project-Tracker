@@ -76,6 +76,7 @@ public class UserHibernateRepo implements UserRepo {
             session.beginTransaction();
 
             session.merge(user);
+            //session.flush();
 
             session.getTransaction().commit();
 

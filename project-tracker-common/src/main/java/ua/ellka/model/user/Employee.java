@@ -25,7 +25,7 @@ public class Employee extends User {
     )
     private Set<Project> projects = new HashSet<>();
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.MERGE, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     private Set<Task> tasks = new HashSet<>();
 
     @Override
