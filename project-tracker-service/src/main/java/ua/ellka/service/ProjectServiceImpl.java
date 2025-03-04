@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ua.ellka.dto.ProjectDTO;
 import ua.ellka.exception.NotFoundServiceException;
-import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.exception.ServiceException;
 import ua.ellka.mapper.ProjectMapper;
 import ua.ellka.model.project.Project;
@@ -40,19 +39,20 @@ public class ProjectServiceImpl implements ProjectService {
 
             project.setManager(manager);
 
-            Optional<Project> savedProject = projectRepo.save(project);
-            Project saved = savedProject.orElseThrow(() -> new ServiceException("Project could not be created"));
+            Project saved = projectRepo.save(project);
 
             return projectMapper.projectToProjectDTO(saved);
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while creating project: " + e.getMessage());
         }
     }
 
     @Override
     public ProjectDTO updateProject(Long id, ProjectDTO projectDTO) {
         try {
-            Project project = projectRepo.find(id)
+            Project project = projectRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
             project.setName(projectDTO.getName());
@@ -60,41 +60,43 @@ public class ProjectServiceImpl implements ProjectService {
             project.setPriority(projectDTO.getPriority());
             project.setStatus(ProjectStatus.fromString(projectDTO.getStatus()));
 
-            Project updated = projectRepo.update(project)
-                    .orElseThrow(() -> new ServiceException("Project could not be updated"));
+            Project updated = projectRepo.save(project);
 
             return projectMapper.projectToProjectDTO(updated);
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while updating project by id: " + e.getMessage());
         }
     }
 
     @Override
     public ProjectDTO deleteProject(Long id) {
         try {
-            Project project = projectRepo.find(id)
+            Project project = projectRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
-            Project deleted = projectRepo.delete(project)
-                    .orElseThrow(() -> new ServiceException("Project could not be deleted"));
+            projectRepo.delete(project);
 
-            return projectMapper.projectToProjectDTO(deleted);
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+            return projectMapper.projectToProjectDTO(project);
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while deleting project by id: " + e.getMessage());
         }
     }
 
     @Override
     public List<ProjectDTO> getAllProjectsByUserId(Long userId) {
         try {
-            User existingUser = userRepo.find(userId)
+            User existingUser = userRepo.findById(userId)
                     .orElseThrow(() -> new NotFoundServiceException("User not found"));
 
             return projectRepo.findByUser(existingUser)
                     .stream()
                     .map(projectMapper::projectToProjectDTO)
                     .toList();
-        } catch (ProjectTrackerPersistingException e) {
+        } catch (Exception e) {
             throw new NotFoundServiceException(e.getMessage());
         }
     }
@@ -102,11 +104,11 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDTO getProject(Long id) {
         try {
-            Project project = projectRepo.find(id)
+            Project project = projectRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
             return projectMapper.projectToProjectDTO(project);
-        } catch (ProjectTrackerPersistingException e) {
+        } catch (Exception e) {
             throw new NotFoundServiceException(e.getMessage());
         }
     }
@@ -114,10 +116,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public boolean assignUserToProject(Long projectId, Long userId) {
         try {
-            Project project = projectRepo.find(projectId)
+            Project project = projectRepo.findById(projectId)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
-            Employee employee = (Employee) userRepo.find(userId)
+            Employee employee = (Employee) userRepo.findById(userId)
                     .orElseThrow(() -> new NotFoundServiceException("Employee not found"));
 
             if (project.getEmployees().contains(employee) || employee.getProjects().contains(project)) {
@@ -128,23 +130,25 @@ public class ProjectServiceImpl implements ProjectService {
             employee.getProjects().add(project);
 
             if (project.getEmployees().contains(employee) && employee.getProjects().contains(project)) {
-                userRepo.update(employee);
+                userRepo.save(employee);
                 return true;
             }
 
             return false;
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while assigning user to project: " + e.getMessage());
         }
     }
 
     @Override
     public boolean removeUserFromProject(Long projectId, Long userId) {
         try {
-            Project project = projectRepo.find(projectId)
+            Project project = projectRepo.findById(projectId)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
-            Employee employee = (Employee) userRepo.find(userId)
+            Employee employee = (Employee) userRepo.findById(userId)
                     .orElseThrow(() -> new NotFoundServiceException("Employee not found"));
 
             if (!project.getEmployees().contains(employee) || !employee.getProjects().contains(project)) {
@@ -155,13 +159,16 @@ public class ProjectServiceImpl implements ProjectService {
             employee.getProjects().remove(project);
 
             if (!project.getEmployees().contains(employee) && !employee.getProjects().contains(project)) {
-                userRepo.update(employee);
+                projectRepo.save(project);
+                userRepo.save(employee);
                 return true;
             }
 
             return false;
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while removing user from project: " + e.getMessage());
         }
     }
 }

@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ua.ellka.dto.TaskDTO;
 import ua.ellka.exception.NotFoundServiceException;
-import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.exception.ServiceException;
 import ua.ellka.mapper.TaskMapper;
 import ua.ellka.model.project.Project;
@@ -22,8 +21,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class TaskServiceImplTest {
     private TaskService taskService;
@@ -42,7 +40,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void createTaskTest_success() throws ProjectTrackerPersistingException {
+    void createTaskTest_success() throws Exception {
         Employee employee = new Employee();
         employee.setFirstName("Test");
         employee.setLastName("Test");
@@ -76,9 +74,9 @@ class TaskServiceImplTest {
 
         when(userRepo.findByNickname("Test Employee")).thenReturn(Optional.of(employee));
         when(userRepo.findByNickname("Test Manager")).thenReturn(Optional.of(manager));
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(mockTask));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(mockTask));
         when(projectRepo.findByName(anyString())).thenReturn(Optional.of(project));
-        when(taskRepo.save(any())).thenReturn(Optional.of(mockTask));
+        when(taskRepo.save(any())).thenReturn(mockTask);
 
         TaskDTO createdTaskDTO = taskService.createTask(testTaskDTO);
 
@@ -91,7 +89,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void createTaskTest_existingTaskThrowsException() throws ProjectTrackerPersistingException {
+    void createTaskTest_existingTaskThrowsException() throws Exception {
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
@@ -115,8 +113,8 @@ class TaskServiceImplTest {
 
         when(projectRepo.findByName(anyString())).thenReturn(Optional.of(project));
         when(taskRepo.findByProject(any())).thenReturn(List.of(mockTask));
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(mockTask));
-        when(taskRepo.save(any())).thenReturn(Optional.of(mockTask));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(mockTask));
+        when(taskRepo.save(any())).thenReturn(mockTask);
 
         ServiceException exception = assertThrows(ServiceException.class,
                 () -> taskService.createTask(testTaskDTO));
@@ -124,7 +122,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void updateTaskTest_success() throws ProjectTrackerPersistingException {
+    void updateTaskTest_success() throws Exception {
         Task mockTask = new Task();
         mockTask.setId(1L);
         mockTask.setName("Test Task");
@@ -132,8 +130,8 @@ class TaskServiceImplTest {
         mockTask.setPriority(1);
         mockTask.setStatus(TaskStatus.IN_PROGRESS);
 
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(mockTask));
-        when(taskRepo.update(any())).thenReturn(Optional.of(mockTask));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(mockTask));
+        when(taskRepo.save(any())).thenReturn(mockTask);
 
         TaskDTO testTaskDTO = new TaskDTO();
         testTaskDTO.setName("Test New Task");
@@ -155,7 +153,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void updateTaskTest_existingEmployee() throws ProjectTrackerPersistingException {
+    void updateTaskTest_existingEmployee() throws Exception {
         Employee employee = new Employee();
         employee.setId(2L);
         employee.setNickname("Test Employee");
@@ -168,8 +166,8 @@ class TaskServiceImplTest {
         mockTask.setStatus(TaskStatus.IN_PROGRESS);
 
         when(userRepo.findByNickname(anyString())).thenReturn(Optional.of(employee));
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(mockTask));
-        when(taskRepo.update(any())).thenReturn(Optional.of(mockTask));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(mockTask));
+        when(taskRepo.save(any())).thenReturn(mockTask);
 
         TaskDTO testTaskDTO = new TaskDTO();
         testTaskDTO.setName("Test New Task");
@@ -193,7 +191,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getTaskTest_success() throws ProjectTrackerPersistingException {
+    void getTaskTest_success() throws Exception {
         Task task = new Task();
         task.setId(1L);
         task.setName("Test Task");
@@ -203,7 +201,7 @@ class TaskServiceImplTest {
         task.setManager(new Manager());
         task.getManager().setNickname("Test Manager");
 
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(task));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(task));
 
         TaskDTO taskById = taskService.getTask(task.getId());
 
@@ -217,10 +215,10 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getTaskTest_nonExistingTaskThrowsException() throws ProjectTrackerPersistingException {
+    void getTaskTest_nonExistingTaskThrowsException() throws Exception {
         Long nonExistingTaskId = 1L;
 
-        when(taskRepo.find(nonExistingTaskId)).thenReturn(Optional.empty());
+        when(taskRepo.findById(nonExistingTaskId)).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.getTask(nonExistingTaskId));
@@ -228,10 +226,10 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getAllTasksByProjectIdTest_success() throws ProjectTrackerPersistingException {
+    void getAllTasksByProjectIdTest_success() throws Exception {
         Long projectId = 1L;
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(new Project()));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(new Project()));
         when(taskRepo.findByProject(any())).thenReturn(List.of(new Task(), new Task()));
 
         List<TaskDTO> tasks = taskService.getAllTasksByProjectId(projectId);
@@ -240,10 +238,10 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getAllTasksByProjectIdTest_nonExistingProjectThrowsException() throws ProjectTrackerPersistingException {
+    void getAllTasksByProjectIdTest_nonExistingProjectThrowsException() throws Exception {
         Long nonExistingProjectId = 1L;
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.empty());
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.getAllTasksByProjectId(nonExistingProjectId));
@@ -251,10 +249,10 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getAllTasksByUserIdTest_success() throws ProjectTrackerPersistingException {
+    void getAllTasksByUserIdTest_success() throws Exception {
         Long userId = 1L;
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(new Manager()));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new Manager()));
         when(taskRepo.findByUser(any())).thenReturn(List.of(new Task(), new Task()));
 
         List<TaskDTO> tasks = taskService.getAllTasksByUserId(userId);
@@ -264,10 +262,10 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getAllTasksByUserId_nonExistingUserThrowsException() throws ProjectTrackerPersistingException {
+    void getAllTasksByUserId_nonExistingUserThrowsException() throws Exception {
         Long nonExistingUserId = 1L;
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.getAllTasksByUserId(nonExistingUserId));
@@ -275,12 +273,12 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getAllTasksByProjectIdAndUserIdTest_success() throws ProjectTrackerPersistingException {
+    void getAllTasksByProjectIdAndUserIdTest_success() throws Exception {
         Long projectId = 1L;
         Long userId = 1L;
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(new Employee()));
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(new Project()));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new Employee()));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(new Project()));
         when(taskRepo.findByProjectAndUser(any(), any())).thenReturn(List.of(new Task(), new Task()));
 
         List<TaskDTO> tasks = taskService.getAllTasksByProjectIdAndUserId(projectId, userId);
@@ -290,11 +288,11 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getAllTasksByProjectIdAndUserIdTest_nonExistingUserThrowsException() throws ProjectTrackerPersistingException {
+    void getAllTasksByProjectIdAndUserIdTest_nonExistingUserThrowsException() throws Exception {
         Long projectId = 1L;
         Long nonExistingUserId = 1L;
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.getAllTasksByProjectIdAndUserId(projectId, nonExistingUserId));
@@ -302,12 +300,12 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void getAllTasksByProjectIdAndUserIdTest_nonExistingProjectThrowsException() throws ProjectTrackerPersistingException {
+    void getAllTasksByProjectIdAndUserIdTest_nonExistingProjectThrowsException() throws Exception {
         Long nonExistingProjectId = 1L;
         Long userId = 1L;
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(new Employee()));
-        when(projectRepo.find(anyLong())).thenReturn(Optional.empty());
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new Employee()));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.getAllTasksByProjectIdAndUserId(nonExistingProjectId, userId));
@@ -315,15 +313,15 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void deleteTaskTest_success() throws ProjectTrackerPersistingException {
+    void deleteTaskTest_success() throws Exception {
         Task testTask = new Task();
         testTask.setId(1L);
         testTask.setDescription("description");
         testTask.setPriority(2);
         testTask.setStatus(TaskStatus.IN_PROGRESS);
 
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(testTask));
-        when(taskRepo.delete(any())).thenReturn(Optional.of(testTask));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
+        doNothing().when(taskRepo).delete(any());
 
         TaskDTO task = taskService.deleteTask(testTask.getId());
 
@@ -335,8 +333,8 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void deleteTaskTest_nonExistingTaskThrowsException() throws ProjectTrackerPersistingException {
-        when(taskRepo.find(anyLong())).thenReturn(Optional.empty());
+    void deleteTaskTest_nonExistingTaskThrowsException() throws Exception {
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.deleteTask(1L));
@@ -344,7 +342,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void assignUserToTaskTest_success() throws ProjectTrackerPersistingException {
+    void assignUserToTaskTest_success() throws Exception {
         Task testTask = new Task();
         testTask.setId(1L);
         testTask.setDescription("description");
@@ -355,8 +353,8 @@ class TaskServiceImplTest {
         employee.setId(1L);
         employee.setNickname("Test Employee");
 
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(testTask));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         boolean assignUserToTask = taskService.assignUserToTask(testTask.getId(), employee.getId());
 
@@ -366,8 +364,8 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void assignUserToTaskTest_nonExistingTaskThrowsException() throws ProjectTrackerPersistingException {
-        when(taskRepo.find(anyLong())).thenReturn(Optional.empty());
+    void assignUserToTaskTest_nonExistingTaskThrowsException() throws Exception {
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.assignUserToTask(1L, 1L));
@@ -375,9 +373,9 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void assignUserToTaskTest_nonExistingEmployeeThrowsException() throws ProjectTrackerPersistingException {
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(new Task()));
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+    void assignUserToTaskTest_nonExistingEmployeeThrowsException() throws Exception {
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(new Task()));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.assignUserToTask(1L, 1L));
@@ -385,7 +383,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void assignUserToTaskTest_employeeAssignedToTaskThrowsException() throws ProjectTrackerPersistingException {
+    void assignUserToTaskTest_employeeAssignedToTaskThrowsException() throws Exception {
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
@@ -399,8 +397,8 @@ class TaskServiceImplTest {
         employee.getTasks().add(testTask);
         testTask.setEmployee(employee);
 
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(testTask));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         ServiceException exception = assertThrows(ServiceException.class,
                 () -> taskService.assignUserToTask(testTask.getId(), employee.getId()));
@@ -408,7 +406,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void removeUserFromTaskTest_success() throws ProjectTrackerPersistingException {
+    void removeUserFromTaskTest_success() throws Exception {
         Task testTask = new Task();
         testTask.setId(1L);
         testTask.setDescription("description");
@@ -422,8 +420,8 @@ class TaskServiceImplTest {
         employee.getTasks().add(testTask);
         testTask.setEmployee(employee);
 
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(testTask));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         boolean removeUserFromTask = taskService.removeUserFromTask(testTask.getId(), employee.getId());
 
@@ -433,8 +431,8 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void removeUserFromTaskTest_nonExistingTaskThrowsException() throws ProjectTrackerPersistingException {
-        when(taskRepo.find(anyLong())).thenReturn(Optional.empty());
+    void removeUserFromTaskTest_nonExistingTaskThrowsException() throws Exception {
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.removeUserFromTask(1L, 1L));
@@ -442,9 +440,9 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void removeUserFromTaskTest_nonExistingEmployeeThrowsException() throws ProjectTrackerPersistingException {
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(new Task()));
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+    void removeUserFromTaskTest_nonExistingEmployeeThrowsException() throws Exception {
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(new Task()));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> taskService.removeUserFromTask(1L, 1L));
@@ -452,7 +450,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void removeUserFromTaskTest_employeeNotAssignedToTaskThrowsException() throws ProjectTrackerPersistingException {
+    void removeUserFromTaskTest_employeeNotAssignedToTaskThrowsException() throws Exception {
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
@@ -463,8 +461,8 @@ class TaskServiceImplTest {
         testTask.setPriority(2);
         testTask.setStatus(TaskStatus.IN_PROGRESS);
 
-        when(taskRepo.find(anyLong())).thenReturn(Optional.of(testTask));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         ServiceException exception = assertThrows(ServiceException.class,
                 () -> taskService.removeUserFromTask(testTask.getId(), employee.getId()));
