@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   servlet:
     context-path: /app
 
@@ -14,3 +14,15 @@ management:
       access: read_only
     metrics:
       access: unrestricted
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  datasource:
+    url: jdbc:mysql://${JDBC_DB_HOST}:${JDBC_DB_PORT}/${JDBC_DB_NAME}
+    password: ${JDBC_DB_PASSWORD}
+    username: ${JDBC_DB_USER}
+    driver-class-name: com.mysql.cj.jdbc.Driver
