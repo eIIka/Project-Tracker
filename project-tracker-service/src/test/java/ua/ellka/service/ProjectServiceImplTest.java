@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ua.ellka.dto.ProjectDTO;
 import ua.ellka.exception.NotFoundServiceException;
-import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.exception.ServiceException;
 import ua.ellka.mapper.ProjectMapper;
 import ua.ellka.model.project.Project;
@@ -20,8 +19,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ProjectServiceImplTest {
     private ProjectService projectService;
@@ -38,7 +36,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void createProjectTest_success() throws ProjectTrackerPersistingException {
+    void createProjectTest_success() throws Exception{
         ProjectDTO testProjectDTO = new ProjectDTO();
         testProjectDTO.setId(1L);
         testProjectDTO.setName("Test Project");
@@ -58,7 +56,7 @@ public class ProjectServiceImplTest {
         mockProject.setManager(manager);
 
         when(userRepo.findByNickname(anyString())).thenReturn(Optional.of(manager));
-        when(projectRepo.save(any())).thenReturn(Optional.of(mockProject));
+        when(projectRepo.save(any())).thenReturn(mockProject);
 
         ProjectDTO createdProject = projectService.createProject(testProjectDTO);
         assertNotNull(createdProject);
@@ -66,7 +64,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void createProjectTest_existingProjectExisting() throws ProjectTrackerPersistingException {
+    void createProjectTest_existingProjectExisting() throws Exception{
         ProjectDTO testProjectDTO = new ProjectDTO();
         testProjectDTO.setId(1L);
         testProjectDTO.setName("Test Project");
@@ -88,7 +86,7 @@ public class ProjectServiceImplTest {
         manager.getProjects().add(mockProject);
 
         when(userRepo.findByNickname(anyString())).thenReturn(Optional.of(manager));
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(mockProject));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(mockProject));
         when(projectRepo.save(any())).thenReturn(Optional.of(mockProject));
 
         ServiceException exception = assertThrows(ServiceException.class,
@@ -97,7 +95,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void updateProjectTest_success() throws ProjectTrackerPersistingException {
+    void updateProjectTest_success() throws Exception{
         Project mockProject = new Project();
         mockProject.setId(1L);
         mockProject.setName("Test Project");
@@ -111,8 +109,8 @@ public class ProjectServiceImplTest {
         testProjectDTO.setStatus("In Progress");
         testProjectDTO.setManagerName("Test Manager");
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(mockProject));
-        when(projectRepo.update(any())).thenReturn(Optional.of(mockProject));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(mockProject));
+        when(projectRepo.save(any())).thenReturn(mockProject);
 
         ProjectDTO updatedProject = projectService.updateProject(1L, testProjectDTO);
 
@@ -124,8 +122,8 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void updateProjectTest_nonExistingProjectThrowsException() throws ProjectTrackerPersistingException {
-        when(projectRepo.find(anyLong())).thenReturn(Optional.empty());
+    void updateProjectTest_nonExistingProjectThrowsException() throws Exception{
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         ProjectDTO testProjectDTO = new ProjectDTO();
         testProjectDTO.setId(1000L);
@@ -139,15 +137,15 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void deleteProjectTest_success() throws ProjectTrackerPersistingException {
+    void deleteProjectTest_success() throws Exception{
         Project testProject = new Project();
         testProject.setId(1L);
         testProject.setName("Test Project");
         testProject.setDescription("Test Description");
         testProject.setStatus(ProjectStatus.IN_PROGRESS);
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(testProject));
-        when(projectRepo.delete(any())).thenReturn(Optional.of(testProject));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(testProject));
+        doNothing().when(projectRepo).delete(testProject);
 
         ProjectDTO deletedProject = projectService.deleteProject(testProject.getId());
 
@@ -159,8 +157,8 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void deleteProjectTest_nonExistingProjectThrowsException() throws ProjectTrackerPersistingException {
-        when(projectRepo.find(anyLong())).thenReturn(Optional.empty());
+    void deleteProjectTest_nonExistingProjectThrowsException() throws Exception{
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> projectService.deleteProject(1L));
@@ -168,9 +166,9 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void getProjectsByUserId_returnsProject() throws ProjectTrackerPersistingException {
+    void getProjectsByUserId_returnsProject() throws Exception{
         Long userId = 1L;
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(new Employee()));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new Employee()));
         when(projectRepo.findByUser(any())).thenReturn(List.of(new Project()));
 
         List<ProjectDTO> projects = projectService.getAllProjectsByUserId(userId);
@@ -180,9 +178,9 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void getProjectsByUserId_nonExistingUserThrowsException() throws ProjectTrackerPersistingException {
+    void getProjectsByUserId_nonExistingUserThrowsException() throws Exception{
         Long userId = 999L;
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> projectService.getAllProjectsByUserId(userId));
@@ -190,9 +188,9 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void getProject_returnsProject() throws ProjectTrackerPersistingException {
+    void getProject_returnsProject() throws Exception{
         Long projectId = 1L;
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(new Project()));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(new Project()));
 
         ProjectDTO project = projectService.getProject(projectId);
 
@@ -200,9 +198,9 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void getProject_nonExistingProjectThrowsException() throws ProjectTrackerPersistingException {
+    void getProject_nonExistingProjectThrowsException() throws Exception{
         Long projectId = 999L;
-        when(projectRepo.find(anyLong())).thenReturn(Optional.empty());
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> projectService.getProject(projectId));
@@ -210,7 +208,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void assignUserToProject_success() throws ProjectTrackerPersistingException {
+    void assignUserToProject_success() throws Exception{
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
@@ -221,8 +219,8 @@ public class ProjectServiceImplTest {
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(project));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         boolean assignUserToProject = projectService.assignUserToProject(project.getId(), employee.getId());
 
@@ -230,8 +228,8 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void assignUserToProject_nonExistingProjectThrowsException() throws ProjectTrackerPersistingException {
-        when(projectRepo.find(anyLong())).thenReturn(Optional.empty());
+    void assignUserToProject_nonExistingProjectThrowsException() throws Exception{
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> projectService.assignUserToProject(1L, 999L));
@@ -239,7 +237,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void assignUserToProjectTest_nonExistingEmployeeThrowsException() throws ProjectTrackerPersistingException {
+    void assignUserToProjectTest_nonExistingEmployeeThrowsException() throws Exception{
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
@@ -247,8 +245,8 @@ public class ProjectServiceImplTest {
         project.setStatus(ProjectStatus.IN_PROGRESS);
 
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(project));
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> projectService.assignUserToProject(project.getId(), 1L));
@@ -256,7 +254,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void assignUserToProjectTest_userIsNotEmployeeThrowsException() throws ProjectTrackerPersistingException {
+    void assignUserToProjectTest_userIsNotEmployeeThrowsException() throws Exception{
         User nonEmployee = new Manager();
         nonEmployee.setId(1L);
         nonEmployee.setNickname("Test NonEmployee");
@@ -267,15 +265,15 @@ public class ProjectServiceImplTest {
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(project));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(nonEmployee));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(nonEmployee));
 
-        assertThrows(ClassCastException.class,
+        assertThrows(ServiceException.class,
                 () -> projectService.assignUserToProject(project.getId(), nonEmployee.getId()));
     }
 
     @Test
-    void assignUserToProjectTest_employeeIsAssignToProjectThrowsException() throws ProjectTrackerPersistingException {
+    void assignUserToProjectTest_employeeIsAssignToProjectThrowsException() throws Exception{
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
@@ -289,8 +287,8 @@ public class ProjectServiceImplTest {
         employee.getProjects().add(project);
         project.getEmployees().add(employee);
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(project));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         ServiceException exception = assertThrows(ServiceException.class,
                 () -> projectService.assignUserToProject(project.getId(), employee.getId()));
@@ -298,7 +296,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_success() throws ProjectTrackerPersistingException {
+    void removeUserFromProject_success() throws Exception{
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
@@ -312,8 +310,8 @@ public class ProjectServiceImplTest {
         employee.getProjects().add(project);
         project.getEmployees().add(employee);
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(project));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         boolean removed = projectService.removeUserFromProject(project.getId(), employee.getId());
 
@@ -321,13 +319,13 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_nonExistingProjectThrowsException() throws ProjectTrackerPersistingException {
+    void removeUserFromProject_nonExistingProjectThrowsException() throws Exception{
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.empty());
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> projectService.removeUserFromProject(1L, employee.getId()));
@@ -335,15 +333,15 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_nonExistingEmployeeThrowsException() throws ProjectTrackerPersistingException {
+    void removeUserFromProject_nonExistingEmployeeThrowsException() throws Exception{
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(project));
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> projectService.removeUserFromProject(project.getId(), 1L));
@@ -351,7 +349,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_employeeIsNotAssignToProjectThrowsException() throws ProjectTrackerPersistingException {
+    void removeUserFromProject_employeeIsNotAssignToProjectThrowsException() throws Exception{
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");;
@@ -362,8 +360,8 @@ public class ProjectServiceImplTest {
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(project));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         ServiceException exception = assertThrows(ServiceException.class,
                 () -> projectService.removeUserFromProject(project.getId(), employee.getId()));
@@ -371,7 +369,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_userIsNotEmployeeThrowsException() throws ProjectTrackerPersistingException {
+    void removeUserFromProject_userIsNotEmployeeThrowsException() throws Exception{
         User employee = new Manager();
         employee.setId(1L);
         employee.setNickname("Test Employee");
@@ -383,10 +381,10 @@ public class ProjectServiceImplTest {
         project.setStatus(ProjectStatus.IN_PROGRESS);
 
 
-        when(projectRepo.find(anyLong())).thenReturn(Optional.of(project));
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
-        assertThrows(ClassCastException.class,
-                () -> projectService.removeUserFromProject(project.getId(), employee.getId()));
+        assertThrows(ServiceException.class,
+                () -> projectService.removeUserFromProject(project.getId(), 1L));
     }
 }

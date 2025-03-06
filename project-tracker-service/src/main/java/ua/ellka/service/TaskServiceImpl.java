@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ua.ellka.dto.TaskDTO;
 import ua.ellka.exception.NotFoundServiceException;
-import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.exception.ServiceException;
 import ua.ellka.mapper.TaskMapper;
 import ua.ellka.model.project.Project;
@@ -17,6 +16,7 @@ import ua.ellka.repo.ProjectRepo;
 import ua.ellka.repo.TaskRepo;
 import ua.ellka.repo.UserRepo;
 
+import java.lang.Exception;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -51,19 +51,20 @@ public class TaskServiceImpl implements TaskService {
             task.setManager(manager);
             task.setEmployee(employee);
 
-            Task saved = taskRepo.save(task)
-                    .orElseThrow(() -> new ServiceException("Task could not be saved"));
+            Task saved = taskRepo.save(task);
 
             return taskMapper.taskToTaskDTO(saved);
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while creating task: " + e.getMessage());
         }
     }
 
     @Override
     public TaskDTO updateTask(Long id, TaskDTO taskDTO) {
         try {
-            Task task = taskRepo.find(id)
+            Task task = taskRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
 
             task.setName(taskDTO.getName());
@@ -78,23 +79,24 @@ public class TaskServiceImpl implements TaskService {
                 task.setEmployee((Employee) employee);
             }
 
-            Task updated = taskRepo.update(task)
-                    .orElseThrow(() -> new ServiceException("Task could not be updated"));
+            Task updated = taskRepo.save(task);
 
             return taskMapper.taskToTaskDTO(updated);
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while updating task by id: " + e.getMessage());
         }
     }
 
     @Override
     public TaskDTO getTask(Long id) {
         try {
-            Task task = taskRepo.find(id)
+            Task task = taskRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
 
             return taskMapper.taskToTaskDTO(task);
-        } catch (ProjectTrackerPersistingException e) {
+        } catch (Exception e) {
             throw new NotFoundServiceException(e.getMessage());
         }
     }
@@ -102,14 +104,14 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<TaskDTO> getAllTasksByProjectId(Long projectId) {
         try {
-            Project existingProject = projectRepo.find(projectId)
+            Project existingProject = projectRepo.findById(projectId)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
             return taskRepo.findByProject(existingProject)
                     .stream()
                     .map(taskMapper::taskToTaskDTO)
                     .toList();
-        } catch (ProjectTrackerPersistingException e) {
+        } catch (Exception e) {
             throw new NotFoundServiceException(e.getMessage());
         }
     }
@@ -117,14 +119,14 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<TaskDTO> getAllTasksByUserId(Long userId) {
         try {
-            User existingUser = userRepo.find(userId)
+            User existingUser = userRepo.findById(userId)
                     .orElseThrow(() -> new NotFoundServiceException("User not found"));
 
             return taskRepo.findByUser(existingUser)
                     .stream()
                     .map(taskMapper::taskToTaskDTO)
                     .toList();
-        } catch (ProjectTrackerPersistingException e) {
+        } catch (Exception e) {
             throw new NotFoundServiceException(e.getMessage());
         }
     }
@@ -132,17 +134,17 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<TaskDTO> getAllTasksByProjectIdAndUserId(Long projectId, Long userId) {
         try {
-            User existingUser = userRepo.find(userId)
+            User existingUser = userRepo.findById(userId)
                     .orElseThrow(() -> new NotFoundServiceException("User not found"));
 
-            Project existingProject = projectRepo.find(projectId)
+            Project existingProject = projectRepo.findById(projectId)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
             return taskRepo.findByProjectAndUser(existingProject, existingUser)
                     .stream()
                     .map(taskMapper::taskToTaskDTO)
                     .toList();
-        } catch (ProjectTrackerPersistingException e) {
+        } catch (Exception e) {
             throw new NotFoundServiceException(e.getMessage());
         }
     }
@@ -150,25 +152,26 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDTO deleteTask(Long id) {
         try {
-            Task task = taskRepo.find(id)
+            Task task = taskRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
 
-            Task deleted = taskRepo.delete(task)
-                    .orElseThrow(() -> new ServiceException("Task could not be deleted"));
+            taskRepo.delete(task);
 
-            return taskMapper.taskToTaskDTO(deleted);
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+            return taskMapper.taskToTaskDTO(task);
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while deleting task by id: " + e.getMessage());
         }
     }
 
     @Override
     public boolean assignUserToTask(Long taskId, Long userId) {
         try {
-            Task task = taskRepo.find(taskId)
+            Task task = taskRepo.findById(taskId)
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
 
-            Employee employee = (Employee) userRepo.find(userId)
+            Employee employee = (Employee) userRepo.findById(userId)
                     .orElseThrow(() -> new NotFoundServiceException("Employee not found"));
 
             if (employee.equals(task.getEmployee()) || employee.getTasks().contains(task)) {
@@ -178,23 +181,25 @@ public class TaskServiceImpl implements TaskService {
             task.setEmployee(employee);
             employee.getTasks().add(task);
             if (employee.equals(task.getEmployee()) && employee.getTasks().contains(task)) {
-                taskRepo.update(task);
+                taskRepo.save(task);
                 return true;
             }
 
             return false;
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while assigning user to task:  " + e.getMessage());
         }
     }
 
     @Override
     public boolean removeUserFromTask(Long taskId, Long userId) {
         try {
-            Task task = taskRepo.find(taskId)
+            Task task = taskRepo.findById(taskId)
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
 
-            Employee employee = (Employee) userRepo.find(userId)
+            Employee employee = (Employee) userRepo.findById(userId)
                     .orElseThrow(() -> new NotFoundServiceException("Employee not found"));
 
             if (task.getEmployee() == null || !task.getEmployee().equals(employee) || !employee.getTasks().contains(task)) {
@@ -204,13 +209,15 @@ public class TaskServiceImpl implements TaskService {
             task.setEmployee(null);
             employee.getTasks().remove(task);
             if (task.getEmployee() == null && !employee.getTasks().contains(task)) {
-                taskRepo.update(task);
+                taskRepo.save(task);
                 return true;
             }
 
             return false;
-        } catch (ProjectTrackerPersistingException e) {
-            throw new NotFoundServiceException(e.getMessage());
+        } catch (ServiceException e){
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Error while removing user from task: " + e.getMessage());
         }
     }
 }

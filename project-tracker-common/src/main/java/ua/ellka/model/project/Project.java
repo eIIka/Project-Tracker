@@ -5,6 +5,7 @@ import lombok.*;
 import ua.ellka.model.task.Task;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
+import ua.ellka.model.user.User;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -47,7 +48,7 @@ public class Project {
 
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "manager_id")
-    private Manager manager;
+    private User manager;
 
     @OneToMany(mappedBy = "project", cascade = {
             CascadeType.PERSIST,
@@ -62,5 +63,5 @@ public class Project {
             joinColumns = @JoinColumn(name = "project_id"),
             inverseJoinColumns = @JoinColumn(name = "employee_id")
     )
-    private Set<Employee> employees = new HashSet<>();
+    private Set<User> employees = new HashSet<>();
 }

@@ -5,6 +5,7 @@ import lombok.*;
 import ua.ellka.model.project.Project;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
+import ua.ellka.model.user.User;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -68,11 +69,11 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
-    private Employee employee;
+    private User employee;
 
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "manager_id")
-    private Manager manager;
+    private User manager;
 
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "project_id")

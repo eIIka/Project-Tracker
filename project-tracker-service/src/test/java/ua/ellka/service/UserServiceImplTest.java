@@ -2,23 +2,18 @@ package ua.ellka.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.BeanUtils;
 import ua.ellka.dto.EmployeeDTO;
 import ua.ellka.dto.ManagerDTO;
 import ua.ellka.dto.UserDTO;
 import ua.ellka.exception.NotFoundServiceException;
-import ua.ellka.exception.ProjectTrackerPersistingException;
 import ua.ellka.exception.ServiceException;
 import ua.ellka.mapper.UserMapper;
-import ua.ellka.model.project.Project;
-import ua.ellka.model.task.Task;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
 import ua.ellka.model.user.User;
 import ua.ellka.repo.UserRepo;
 
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -37,7 +32,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUserTest_createEmployee() throws ProjectTrackerPersistingException {
+    void createUserTest_createEmployee() throws Exception {
         UserDTO userDTO = new EmployeeDTO();
         userDTO.setNickname("Test");
         userDTO.setEmail("test@test.com");
@@ -53,7 +48,7 @@ class UserServiceImplTest {
 
         when(userRepo.findByNickname(anyString())).thenReturn(Optional.empty());
         when(userRepo.findByEmail(anyString())).thenReturn(Optional.empty());
-        when(userRepo.save(any())).thenReturn(Optional.of(mockUser));
+        when(userRepo.save(any())).thenReturn(mockUser);
 
         UserDTO created = userService.createUser(userDTO);
 
@@ -66,7 +61,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUserTest_createManager() throws ProjectTrackerPersistingException {
+    void createUserTest_createManager() throws Exception {
         UserDTO userDTO = new ManagerDTO();
         userDTO.setNickname("Test");
         userDTO.setEmail("test@test.com");
@@ -82,7 +77,7 @@ class UserServiceImplTest {
 
         when(userRepo.findByNickname(anyString())).thenReturn(Optional.empty());
         when(userRepo.findByEmail(anyString())).thenReturn(Optional.empty());
-        when(userRepo.save(any())).thenReturn(Optional.of(mockUser));
+        when(userRepo.save(any())).thenReturn(mockUser);
 
         UserDTO created = userService.createUser(userDTO);
 
@@ -95,7 +90,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUserTest_existingUserWithNicknameThrowException() throws ProjectTrackerPersistingException {
+    void createUserTest_existingUserWithNicknameThrowException() throws Exception {
         UserDTO userDTO = new EmployeeDTO();
         userDTO.setNickname("Test");
         userDTO.setEmail("test@test.com");
@@ -115,7 +110,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUserTest_existingUserWithEmailThrowException() throws ProjectTrackerPersistingException {
+    void createUserTest_existingUserWithEmailThrowException() throws Exception {
         UserDTO userDTO = new EmployeeDTO();
         userDTO.setNickname("Test");
         userDTO.setEmail("test@test.com");
@@ -137,7 +132,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateUserTest_updateEmployee() throws ProjectTrackerPersistingException {
+    void updateUserTest_updateEmployee() throws Exception {
         User mockUser = new Employee();
         mockUser.setFirstName("First Name");
         mockUser.setLastName("Last Name");
@@ -151,10 +146,10 @@ class UserServiceImplTest {
         testUserDTO.setLastName("New Last Name");
         testUserDTO.setPhoneNumber("1234567890");
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(mockUser));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(mockUser));
         when(userRepo.findByNickname(anyString())).thenReturn(Optional.empty());
         when(userRepo.findByEmail(anyString())).thenReturn(Optional.empty());
-        when(userRepo.update(any())).thenReturn(Optional.of(mockUser));
+        when(userRepo.save(any())).thenReturn(mockUser);
 
         UserDTO updated = userService.updateUser(1L, testUserDTO);
 
@@ -168,7 +163,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateUserTest_updateManager() throws ProjectTrackerPersistingException {
+    void updateUserTest_updateManager() throws Exception {
         User mockUser = new Manager();
         mockUser.setFirstName("First Name");
         mockUser.setLastName("Last Name");
@@ -182,10 +177,10 @@ class UserServiceImplTest {
         testUserDTO.setLastName("New Last Name");
         testUserDTO.setPhoneNumber("1234567890");
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(mockUser));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(mockUser));
         when(userRepo.findByNickname(anyString())).thenReturn(Optional.empty());
         when(userRepo.findByEmail(anyString())).thenReturn(Optional.empty());
-        when(userRepo.update(any())).thenReturn(Optional.of(mockUser));
+        when(userRepo.save(any())).thenReturn(mockUser);
 
         UserDTO updated = userService.updateUser(1L, testUserDTO);
 
@@ -199,8 +194,8 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateUserTest_nonExistingUserThrowException() throws ProjectTrackerPersistingException {
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+    void updateUserTest_nonExistingUserThrowException() throws Exception {
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> userService.updateUser(1L, new ManagerDTO()));
@@ -208,7 +203,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateUserTest_existingUserWithNicknameThrowException() throws ProjectTrackerPersistingException {
+    void updateUserTest_existingUserWithNicknameThrowException() throws Exception {
         UserDTO testUserDTO = new ManagerDTO();
         testUserDTO.setNickname("New Test Manager");
         testUserDTO.setEmail("newtest@newtest.com");
@@ -224,7 +219,7 @@ class UserServiceImplTest {
         anotherUser.setFirstName("First Name");
         anotherUser.setNickname("New Test Manager");
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(existingUser));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(existingUser));
         when(userRepo.findByNickname(testUserDTO.getNickname())).thenReturn(Optional.of(anotherUser));
 
         ServiceException exception = assertThrows(ServiceException.class,
@@ -233,7 +228,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateUserTest_existingUserWithEmailThrowException() throws ProjectTrackerPersistingException {
+    void updateUserTest_existingUserWithEmailThrowException() throws Exception {
         UserDTO testUserDTO = new ManagerDTO();
         testUserDTO.setNickname("New Test Manager");
         testUserDTO.setEmail("newtest@newtest.com");
@@ -251,7 +246,7 @@ class UserServiceImplTest {
         anotherUser.setFirstName("First Name");
         anotherUser.setNickname("New Test Manager");
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(existingUser));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(existingUser));
         when(userRepo.findByNickname(testUserDTO.getNickname())).thenReturn(Optional.empty());
         when(userRepo.findByEmail(testUserDTO.getEmail())).thenReturn(Optional.of(anotherUser));
 
@@ -261,20 +256,19 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateUserTest_fails() throws ProjectTrackerPersistingException {
-        UserDTO employeeDTO = new EmployeeDTO();
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(new Manager()));
+    void updateUserTest_fails() throws Exception {
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new Manager()));
         when(userRepo.findByNickname(any())).thenReturn(Optional.empty());
         when(userRepo.findByEmail(any())).thenReturn(Optional.empty());
-        when(userRepo.update(any())).thenReturn(Optional.empty());
+        when(userRepo.save(any())).thenReturn(null);
 
-        ServiceException exception = assertThrows(ServiceException.class,
-                () -> userService.updateUser(1L, new EmployeeDTO()));
-        assertEquals("User could not be updated", exception.getMessage());
+
+        UserDTO userDTO = userService.updateUser(1L, new EmployeeDTO());
+        assertNull(userDTO);
     }
 
     @Test
-    void getUserTest_getEmployee() throws ProjectTrackerPersistingException {
+    void getUserTest_getEmployee() throws Exception {
         User employee = new Employee();
         employee.setId(1L);
         employee.setNickname("New Test Manager");
@@ -283,7 +277,7 @@ class UserServiceImplTest {
         employee.setLastName("New Last Name");
         employee.setPhoneNumber("1234567890");
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
         UserDTO user = userService.getUser(1L);
 
@@ -296,7 +290,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void getUserTest_getManager() throws ProjectTrackerPersistingException {
+    void getUserTest_getManager() throws Exception {
         User manager = new Manager();
         manager.setId(1L);
         manager.setNickname("New Test Manager");
@@ -305,7 +299,7 @@ class UserServiceImplTest {
         manager.setLastName("New Last Name");
         manager.setPhoneNumber("1234567890");
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(manager));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(manager));
 
         UserDTO user = userService.getUser(1L);
 
@@ -318,8 +312,8 @@ class UserServiceImplTest {
     }
 
     @Test
-    void getUserTest_nonExistingUserThrowException() throws ProjectTrackerPersistingException {
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+    void getUserTest_nonExistingUserThrowException() throws Exception {
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> userService.getUser(1L));
@@ -327,7 +321,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void deleteUserTest_deletedEmployee() throws ProjectTrackerPersistingException {
+    void deleteUserTest_deletedEmployee() throws Exception {
         User employee = new Employee();
         employee.setId(1L);
         employee.setNickname("New Test Manager");
@@ -336,8 +330,8 @@ class UserServiceImplTest {
         employee.setLastName("New Last Name");
         employee.setPhoneNumber("1234567890");
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
-        when(userRepo.delete(any())).thenReturn(Optional.of(employee));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
+        doNothing().when(userRepo).delete(any());
 
         UserDTO user = userService.deleteUser(1L);
 
@@ -350,7 +344,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void deleteUserTest_deletedManager() throws ProjectTrackerPersistingException {
+    void deleteUserTest_deletedManager() throws Exception {
         User manager = new Manager();
         manager.setId(1L);
         manager.setNickname("New Test Manager");
@@ -359,8 +353,8 @@ class UserServiceImplTest {
         manager.setLastName("New Last Name");
         manager.setPhoneNumber("1234567890");
 
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(manager));
-        when(userRepo.delete(any())).thenReturn(Optional.of(manager));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(manager));
+        doNothing().when(userRepo).delete(any());
 
         UserDTO user = userService.deleteUser(1L);
 
@@ -373,29 +367,11 @@ class UserServiceImplTest {
     }
 
     @Test
-    void deleteUserTest_nonExistingUserThrowException() throws ProjectTrackerPersistingException {
-        when(userRepo.find(anyLong())).thenReturn(Optional.empty());
+    void deleteUserTest_nonExistingUserThrowException() throws Exception {
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> userService.deleteUser(1L));
         assertEquals("User not found", exception.getMessage());
-    }
-
-    @Test
-    void deleteUserTest_fails() throws ProjectTrackerPersistingException {
-        User employee = new Employee();
-        employee.setId(1L);
-        employee.setNickname("New Test Manager");
-        employee.setEmail("newtest@newtest.com");
-        employee.setFirstName("New First Name");
-        employee.setLastName("New Last Name");
-        employee.setPhoneNumber("1234567890");
-
-        when(userRepo.find(anyLong())).thenReturn(Optional.of(employee));
-        when(userRepo.delete(any())).thenReturn(Optional.empty());
-
-        ServiceException exception = assertThrows(ServiceException.class,
-                () -> userService.deleteUser(1L));
-        assertEquals("User could not be deleted", exception.getMessage());
     }
 }
