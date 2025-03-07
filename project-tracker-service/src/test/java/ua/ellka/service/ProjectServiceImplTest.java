@@ -2,6 +2,9 @@ package ua.ellka.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import ua.ellka.dto.ProjectDTO;
 import ua.ellka.exception.NotFoundServiceException;
 import ua.ellka.exception.ServiceException;
@@ -25,18 +28,24 @@ public class ProjectServiceImplTest {
     private ProjectService projectService;
     private ProjectRepo projectRepo;
     private UserRepo userRepo;
+    private Authentication authentication;
 
     @BeforeEach
     public void setUp() {
         projectRepo = mock(ProjectRepo.class);
         userRepo = mock(UserRepo.class);
         ProjectMapper projectMapper = ProjectMapper.INSTANCE;
+        authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
 
         projectService = new ProjectServiceImpl(projectRepo, projectMapper, userRepo);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
-    void createProjectTest_success() throws Exception{
+    void createProjectTest_success() throws Exception {
         ProjectDTO testProjectDTO = new ProjectDTO();
         testProjectDTO.setId(1L);
         testProjectDTO.setName("Test Project");
@@ -47,6 +56,7 @@ public class ProjectServiceImplTest {
         Manager manager = new Manager();
         manager.setId(2L);
         manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
 
         Project mockProject = new Project();
         mockProject.setId(1L);
@@ -55,6 +65,8 @@ public class ProjectServiceImplTest {
         mockProject.setStatus(ProjectStatus.fromString(testProjectDTO.getStatus()));
         mockProject.setManager(manager);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(userRepo.findByNickname(anyString())).thenReturn(Optional.of(manager));
         when(projectRepo.save(any())).thenReturn(mockProject);
 
@@ -64,7 +76,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void createProjectTest_existingProjectExisting() throws Exception{
+    void createProjectTest_existingProjectExisting() throws Exception {
         ProjectDTO testProjectDTO = new ProjectDTO();
         testProjectDTO.setId(1L);
         testProjectDTO.setName("Test Project");
@@ -75,6 +87,7 @@ public class ProjectServiceImplTest {
         Manager manager = new Manager();
         manager.setId(2L);
         manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
 
         Project mockProject = new Project();
         mockProject.setId(1L);
@@ -85,9 +98,11 @@ public class ProjectServiceImplTest {
         mockProject.setManager(manager);
         manager.getProjects().add(mockProject);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(userRepo.findByNickname(anyString())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(mockProject));
-        when(projectRepo.save(any())).thenReturn(Optional.of(mockProject));
+        when(projectRepo.save(any())).thenReturn(mockProject);
 
         ServiceException exception = assertThrows(ServiceException.class,
                 () -> projectService.createProject(testProjectDTO));
@@ -95,12 +110,18 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void updateProjectTest_success() throws Exception{
+    void updateProjectTest_success() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Project mockProject = new Project();
         mockProject.setId(1L);
         mockProject.setName("Test Project");
         mockProject.setDescription("Test Description");
         mockProject.setStatus(ProjectStatus.IN_PROGRESS);
+        mockProject.setManager(manager);
 
         ProjectDTO testProjectDTO = new ProjectDTO();
         testProjectDTO.setId(9999L);
@@ -109,6 +130,8 @@ public class ProjectServiceImplTest {
         testProjectDTO.setStatus("In Progress");
         testProjectDTO.setManagerName("Test Manager");
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(mockProject));
         when(projectRepo.save(any())).thenReturn(mockProject);
 
@@ -122,7 +145,14 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void updateProjectTest_nonExistingProjectThrowsException() throws Exception{
+    void updateProjectTest_nonExistingProjectThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         ProjectDTO testProjectDTO = new ProjectDTO();
@@ -130,6 +160,7 @@ public class ProjectServiceImplTest {
         testProjectDTO.setName("Test Project");
         testProjectDTO.setDescription("Test Description");
         testProjectDTO.setStatus("In Progress");
+        testProjectDTO.setManagerName("Test Manager");
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
                 () -> projectService.updateProject(1L, testProjectDTO));
@@ -137,13 +168,23 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void deleteProjectTest_success() throws Exception{
+    void deleteProjectTest_success() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Project testProject = new Project();
         testProject.setId(1L);
         testProject.setName("Test Project");
         testProject.setDescription("Test Description");
         testProject.setStatus(ProjectStatus.IN_PROGRESS);
+        testProject.setManager(manager);
 
+        manager.getProjects().add(testProject);
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(testProject));
         doNothing().when(projectRepo).delete(testProject);
 
@@ -157,7 +198,14 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void deleteProjectTest_nonExistingProjectThrowsException() throws Exception{
+    void deleteProjectTest_nonExistingProjectThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
@@ -166,59 +214,96 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void getProjectsByUserId_returnsProject() throws Exception{
-        Long userId = 1L;
-        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new Employee()));
+    void getProjectsByUserId_returnsProject() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(manager));
         when(projectRepo.findByUser(any())).thenReturn(List.of(new Project()));
 
-        List<ProjectDTO> projects = projectService.getAllProjectsByUserId(userId);
+        List<ProjectDTO> projects = projectService.getAllProjectsByUserId(manager.getId());
 
         assertNotNull(projects);
         assertFalse(projects.isEmpty());
     }
 
     @Test
-    void getProjectsByUserId_nonExistingUserThrowsException() throws Exception{
-        Long userId = 999L;
+    void getProjectsByUserId_nonExistingUserThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
-                () -> projectService.getAllProjectsByUserId(userId));
+                () -> projectService.getAllProjectsByUserId(1L));
         assertEquals("User not found", exception.getMessage());
     }
 
     @Test
-    void getProject_returnsProject() throws Exception{
-        Long projectId = 1L;
-        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(new Project()));
+    void getProject_returnsProject() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
 
-        ProjectDTO project = projectService.getProject(projectId);
+        Project project = new Project();
+        project.setId(1L);
+        project.setManager(manager);
 
-        assertNotNull(project);
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
+
+        ProjectDTO projectDTO = projectService.getProject(project.getId());
+
+        assertNotNull(projectDTO);
     }
 
     @Test
-    void getProject_nonExistingProjectThrowsException() throws Exception{
-        Long projectId = 999L;
+    void getProject_nonExistingProjectThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
-                () -> projectService.getProject(projectId));
+                () -> projectService.getProject(1L));
         assertEquals("Project not found", exception.getMessage());
     }
 
     @Test
-    void assignUserToProject_success() throws Exception{
+    void assignUserToProject_success() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
+        project.setManager(manager);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
@@ -228,23 +313,37 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void assignUserToProject_nonExistingProjectThrowsException() throws Exception{
+    void assignUserToProject_nonExistingProjectThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
-                () -> projectService.assignUserToProject(1L, 999L));
+                () -> projectService.assignUserToProject(1L, 1L));
         assertEquals("Project not found", exception.getMessage());
     }
 
     @Test
-    void assignUserToProjectTest_nonExistingEmployeeThrowsException() throws Exception{
+    void assignUserToProjectTest_nonExistingEmployeeThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
+        project.setManager(manager);
 
-
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
         when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
@@ -253,18 +352,28 @@ public class ProjectServiceImplTest {
         assertEquals("Employee not found", exception.getMessage());
     }
 
+
     @Test
-    void assignUserToProjectTest_userIsNotEmployeeThrowsException() throws Exception{
+    void assignUserToProjectTest_userIsNotEmployeeThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         User nonEmployee = new Manager();
         nonEmployee.setId(1L);
         nonEmployee.setNickname("Test NonEmployee");
+        nonEmployee.setEmail("test.nonemployee@example.com");
 
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
+        project.setManager(manager);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(nonEmployee));
 
@@ -273,20 +382,29 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void assignUserToProjectTest_employeeIsAssignToProjectThrowsException() throws Exception{
+    void assignUserToProjectTest_employeeIsAssignToProjectThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
+        project.setManager(manager);
 
         employee.getProjects().add(project);
         project.getEmployees().add(employee);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
@@ -296,20 +414,29 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_success() throws Exception{
+    void removeUserFromProject_success() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
+        project.setManager(manager);
 
         employee.getProjects().add(project);
         project.getEmployees().add(employee);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
@@ -319,11 +446,19 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_nonExistingProjectThrowsException() throws Exception{
+    void removeUserFromProject_nonExistingProjectThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
@@ -333,13 +468,21 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_nonExistingEmployeeThrowsException() throws Exception{
+    void removeUserFromProject_nonExistingEmployeeThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
+        project.setManager(manager);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
         when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
@@ -349,17 +492,26 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_employeeIsNotAssignToProjectThrowsException() throws Exception{
+    void removeUserFromProject_employeeIsNotAssignToProjectThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Employee employee = new Employee();
         employee.setId(1L);
-        employee.setNickname("Test Employee");;
+        employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
+        project.setManager(manager);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
@@ -369,22 +521,30 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void removeUserFromProject_userIsNotEmployeeThrowsException() throws Exception{
-        User employee = new Manager();
-        employee.setId(1L);
-        employee.setNickname("Test Employee");
+    void removeUserFromProject_userIsNotEmployeeThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setId(2L);
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        User nonEmployee = new Manager();
+        nonEmployee.setId(1L);
+        nonEmployee.setNickname("Test NonEmployee");
+        nonEmployee.setEmail("test.nonemployee@example.com");
 
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Test Description");
         project.setStatus(ProjectStatus.IN_PROGRESS);
+        project.setManager(manager);
 
-
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
-        when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(nonEmployee));
 
         assertThrows(ServiceException.class,
-                () -> projectService.removeUserFromProject(project.getId(), 1L));
+                () -> projectService.removeUserFromProject(project.getId(), nonEmployee.getId()));
     }
 }

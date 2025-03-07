@@ -2,6 +2,9 @@ package ua.ellka.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import ua.ellka.dto.TaskDTO;
 import ua.ellka.exception.NotFoundServiceException;
 import ua.ellka.exception.ServiceException;
@@ -11,6 +14,7 @@ import ua.ellka.model.task.Task;
 import ua.ellka.model.task.TaskStatus;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
+import ua.ellka.model.user.UserRole;
 import ua.ellka.repo.ProjectRepo;
 import ua.ellka.repo.TaskRepo;
 import ua.ellka.repo.UserRepo;
@@ -28,6 +32,7 @@ class TaskServiceImplTest {
     private TaskRepo taskRepo;
     private ProjectRepo projectRepo;
     private UserRepo userRepo;
+    private Authentication authentication;
 
     @BeforeEach
     void setUp() {
@@ -35,25 +40,33 @@ class TaskServiceImplTest {
         userRepo = mock(UserRepo.class);
         projectRepo = mock(ProjectRepo.class);
         TaskMapper taskMapper = TaskMapper.INSTANCE;
+        authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
 
         taskService = new TaskServiceImpl(taskRepo, taskMapper, userRepo, projectRepo);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
     void createTaskTest_success() throws Exception {
-        Employee employee = new Employee();
-        employee.setFirstName("Test");
-        employee.setLastName("Test");
-        employee.setNickname("Test Employee");
-
         Manager manager = new Manager();
         manager.setFirstName("Test");
         manager.setLastName("Test");
         manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        Employee employee = new Employee();
+        employee.setFirstName("Test");
+        employee.setLastName("Test");
+        employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
         Project project = new Project();
         project.setName("Test Project");
         project.setDescription("Test Description");
+        project.setManager(manager);
 
         TaskDTO testTaskDTO = new TaskDTO();
         testTaskDTO.setId(1L);
@@ -72,6 +85,8 @@ class TaskServiceImplTest {
         mockTask.setPriority(1);
         mockTask.setStatus(TaskStatus.IN_PROGRESS);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(userRepo.findByNickname("Test Employee")).thenReturn(Optional.of(employee));
         when(userRepo.findByNickname("Test Manager")).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.of(mockTask));
@@ -90,9 +105,16 @@ class TaskServiceImplTest {
 
     @Test
     void createTaskTest_existingTaskThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
+        project.setManager(manager);
 
         TaskDTO testTaskDTO = new TaskDTO();
         testTaskDTO.setId(1L);
@@ -101,6 +123,7 @@ class TaskServiceImplTest {
         testTaskDTO.setPriority(1);
         testTaskDTO.setStatus(TaskStatus.IN_PROGRESS.getStatus());
         testTaskDTO.setProjectName(project.getName());
+        testTaskDTO.setAssignedManager(manager.getNickname());
 
         Task mockTask = new Task();
         mockTask.setId(1L);
@@ -111,6 +134,8 @@ class TaskServiceImplTest {
         mockTask.setProject(project);
         project.getTasks().add(mockTask);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findByName(anyString())).thenReturn(Optional.of(project));
         when(taskRepo.findByProject(any())).thenReturn(List.of(mockTask));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.of(mockTask));
@@ -123,13 +148,22 @@ class TaskServiceImplTest {
 
     @Test
     void updateTaskTest_success() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Task mockTask = new Task();
         mockTask.setId(1L);
         mockTask.setName("Test Task");
         mockTask.setDescription("Test Description");
         mockTask.setPriority(1);
         mockTask.setStatus(TaskStatus.IN_PROGRESS);
+        mockTask.setManager(manager);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.of(mockTask));
         when(taskRepo.save(any())).thenReturn(mockTask);
 
@@ -139,6 +173,7 @@ class TaskServiceImplTest {
         testTaskDTO.setPriority(2);
         testTaskDTO.setStatus(TaskStatus.NOT_STARTED.getStatus());
         testTaskDTO.setDeadline(LocalDate.now().plusDays(2));
+        testTaskDTO.setAssignedManager(manager.getNickname());
 
         TaskDTO updated = taskService.updateTask(1L, testTaskDTO);
 
@@ -192,16 +227,23 @@ class TaskServiceImplTest {
 
     @Test
     void getTaskTest_success() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Task task = new Task();
         task.setId(1L);
         task.setName("Test Task");
         task.setDescription("Test Description");
         task.setPriority(1);
         task.setStatus(TaskStatus.IN_PROGRESS);
-        task.setManager(new Manager());
-        task.getManager().setNickname("Test Manager");
+        task.setManager(manager);
 
         when(taskRepo.findById(anyLong())).thenReturn(Optional.of(task));
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
 
         TaskDTO taskById = taskService.getTask(task.getId());
 
@@ -227,12 +269,23 @@ class TaskServiceImplTest {
 
     @Test
     void getAllTasksByProjectIdTest_success() throws Exception {
-        Long projectId = 1L;
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
 
-        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(new Project()));
+        Project project = new Project();
+        project.setId(1L);
+        project.setName("Test Project");
+        project.setManager(manager);
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
         when(taskRepo.findByProject(any())).thenReturn(List.of(new Task(), new Task()));
 
-        List<TaskDTO> tasks = taskService.getAllTasksByProjectId(projectId);
+        List<TaskDTO> tasks = taskService.getAllTasksByProjectId(project.getId());
         assertNotNull(tasks);
         assertEquals(2, tasks.size());
     }
@@ -241,6 +294,15 @@ class TaskServiceImplTest {
     void getAllTasksByProjectIdTest_nonExistingProjectThrowsException() throws Exception {
         Long nonExistingProjectId = 1L;
 
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+        manager.setId(1L);
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
@@ -250,12 +312,19 @@ class TaskServiceImplTest {
 
     @Test
     void getAllTasksByUserIdTest_success() throws Exception {
-        Long userId = 1L;
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+        manager.setId(1L);
 
-        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new Manager()));
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(manager));
         when(taskRepo.findByUser(any())).thenReturn(List.of(new Task(), new Task()));
 
-        List<TaskDTO> tasks = taskService.getAllTasksByUserId(userId);
+        List<TaskDTO> tasks = taskService.getAllTasksByUserId(manager.getId());
 
         assertNotNull(tasks);
         assertEquals(2, tasks.size());
@@ -274,14 +343,25 @@ class TaskServiceImplTest {
 
     @Test
     void getAllTasksByProjectIdAndUserIdTest_success() throws Exception {
-        Long projectId = 1L;
-        Long userId = 1L;
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+        manager.setId(1L);
 
-        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new Employee()));
-        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(new Project()));
+        Project project = new Project();
+        project.setId(1L);
+        project.setName("Test Project");
+        project.setManager(manager);
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(manager));
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(project));
         when(taskRepo.findByProjectAndUser(any(), any())).thenReturn(List.of(new Task(), new Task()));
 
-        List<TaskDTO> tasks = taskService.getAllTasksByProjectIdAndUserId(projectId, userId);
+        List<TaskDTO> tasks = taskService.getAllTasksByProjectIdAndUserId(project.getId(), manager.getId());
 
         assertNotNull(tasks);
         assertEquals(2, tasks.size());
@@ -304,7 +384,16 @@ class TaskServiceImplTest {
         Long nonExistingProjectId = 1L;
         Long userId = 1L;
 
-        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new Employee()));
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+        manager.setId(1L);
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(manager));
         when(projectRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
@@ -314,12 +403,23 @@ class TaskServiceImplTest {
 
     @Test
     void deleteTaskTest_success() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Task testTask = new Task();
         testTask.setId(1L);
         testTask.setDescription("description");
         testTask.setPriority(2);
         testTask.setStatus(TaskStatus.IN_PROGRESS);
+        testTask.setManager(manager);
 
+        manager.getTasks().add(testTask);
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
         doNothing().when(taskRepo).delete(any());
 
@@ -334,6 +434,14 @@ class TaskServiceImplTest {
 
     @Test
     void deleteTaskTest_nonExistingTaskThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
@@ -343,16 +451,26 @@ class TaskServiceImplTest {
 
     @Test
     void assignUserToTaskTest_success() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Task testTask = new Task();
         testTask.setId(1L);
         testTask.setDescription("description");
         testTask.setPriority(2);
         testTask.setStatus(TaskStatus.IN_PROGRESS);
+        testTask.setManager(manager);
 
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
@@ -365,6 +483,14 @@ class TaskServiceImplTest {
 
     @Test
     void assignUserToTaskTest_nonExistingTaskThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
@@ -374,7 +500,18 @@ class TaskServiceImplTest {
 
     @Test
     void assignUserToTaskTest_nonExistingEmployeeThrowsException() throws Exception {
-        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(new Task()));
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        Task testTask = new Task();
+        testTask.setId(1L);
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
         when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
@@ -384,19 +521,29 @@ class TaskServiceImplTest {
 
     @Test
     void assignUserToTaskTest_employeeAssignedToTaskThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
         Task testTask = new Task();
         testTask.setId(1L);
         testTask.setDescription("description");
         testTask.setPriority(2);
         testTask.setStatus(TaskStatus.IN_PROGRESS);
+        testTask.setManager(manager);
 
         employee.getTasks().add(testTask);
         testTask.setEmployee(employee);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
@@ -407,19 +554,29 @@ class TaskServiceImplTest {
 
     @Test
     void removeUserFromTaskTest_success() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Task testTask = new Task();
         testTask.setId(1L);
         testTask.setDescription("description");
         testTask.setPriority(2);
         testTask.setStatus(TaskStatus.IN_PROGRESS);
+        testTask.setManager(manager);
 
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
         employee.getTasks().add(testTask);
         testTask.setEmployee(employee);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 
@@ -432,6 +589,14 @@ class TaskServiceImplTest {
 
     @Test
     void removeUserFromTaskTest_nonExistingTaskThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
@@ -441,7 +606,18 @@ class TaskServiceImplTest {
 
     @Test
     void removeUserFromTaskTest_nonExistingEmployeeThrowsException() throws Exception {
-        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(new Task()));
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
+        Task testTask = new Task();
+        testTask.setId(1L);
+
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
+        when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
         when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundServiceException exception = assertThrows(NotFoundServiceException.class,
@@ -451,16 +627,26 @@ class TaskServiceImplTest {
 
     @Test
     void removeUserFromTaskTest_employeeNotAssignedToTaskThrowsException() throws Exception {
+        Manager manager = new Manager();
+        manager.setFirstName("Test");
+        manager.setLastName("Test");
+        manager.setNickname("Test Manager");
+        manager.setEmail("test.manager@example.com");
+
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setNickname("Test Employee");
+        employee.setEmail("test.employee@example.com");
 
         Task testTask = new Task();
         testTask.setId(1L);
         testTask.setDescription("description");
         testTask.setPriority(2);
         testTask.setStatus(TaskStatus.IN_PROGRESS);
+        testTask.setManager(manager);
 
+        when(authentication.getName()).thenReturn(manager.getEmail());
+        when(userRepo.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(taskRepo.findById(anyLong())).thenReturn(Optional.of(testTask));
         when(userRepo.findById(anyLong())).thenReturn(Optional.of(employee));
 

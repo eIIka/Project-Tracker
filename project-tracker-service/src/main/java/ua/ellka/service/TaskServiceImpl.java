@@ -182,7 +182,7 @@ public class TaskServiceImpl implements TaskService {
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
 
             Manager manager = (Manager) existingUser;
-            if (!manager.getTasks().contains(task)){
+            if (!manager.getTasks().contains(task) || !task.getManager().equals(manager)){
                 throw new NotFoundServiceException("User does not belong to task");
             }
 

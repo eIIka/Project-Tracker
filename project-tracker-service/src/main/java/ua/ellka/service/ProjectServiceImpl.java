@@ -91,7 +91,7 @@ public class ProjectServiceImpl implements ProjectService {
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
             Manager manager = (Manager) existingUser;
-            if (manager.getProjects().contains(project) || !project.getManager().equals(manager)){
+            if (!manager.getProjects().contains(project) || !project.getManager().equals(manager)){
                 throw new ServiceException("The user cannot delete the project because they are not the project manager");
             }
 
@@ -128,12 +128,15 @@ public class ProjectServiceImpl implements ProjectService {
         try {
             String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
 
+            User existingUser = userRepo.findByEmail(currentUser)
+                    .orElseThrow(() -> new NotFoundServiceException("User not found"));
+
             Project project = projectRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
-            boolean isManager = project.getManager().getNickname().equals(currentUser);
+            boolean isManager = project.getManager().equals(existingUser);
             boolean isEmployee = project.getEmployees().stream()
-                    .anyMatch(employee -> employee.getNickname().equals(currentUser));
+                    .anyMatch(employee -> employee.equals(existingUser));
 
             if (!isManager && !isEmployee) {
                 throw new NotFoundServiceException("Access denied: User is not part of the project");
