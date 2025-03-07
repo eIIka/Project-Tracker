@@ -1,6 +1,9 @@
 package ua.ellka.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import ua.ellka.dto.TaskDTO;
 import ua.ellka.exception.NotFoundServiceException;
@@ -12,11 +15,11 @@ import ua.ellka.model.task.TaskStatus;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
 import ua.ellka.model.user.User;
+import ua.ellka.model.user.UserRole;
 import ua.ellka.repo.ProjectRepo;
 import ua.ellka.repo.TaskRepo;
 import ua.ellka.repo.UserRepo;
 
-import java.lang.Exception;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ public class TaskServiceImpl implements TaskService {
     private final ProjectRepo projectRepo;
 
     @Override
+    @PreAuthorize("#taskDTO.assignedManager == authentication.principal.nickname")
     public TaskDTO createTask(TaskDTO taskDTO) {
         try {
             Project project = projectRepo.findByName(taskDTO.getProjectName())
@@ -38,7 +42,7 @@ public class TaskServiceImpl implements TaskService {
             Task task = taskMapper.taskDTOToTask(taskDTO);
 
             if (tasksInProject.contains(task)) {
-                    throw new ServiceException("Task already exists in this project");
+                throw new ServiceException("Task already exists in this project");
             }
 
             Employee employee = (Employee) userRepo.findByNickname(taskDTO.getAssignedEmployee())
@@ -54,7 +58,7 @@ public class TaskServiceImpl implements TaskService {
             Task saved = taskRepo.save(task);
 
             return taskMapper.taskToTaskDTO(saved);
-        } catch (ServiceException e){
+        } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
             throw new ServiceException("Error while creating task: " + e.getMessage());
@@ -62,6 +66,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @PreAuthorize("#taskDTO.assignedManager == authentication.principal.nickname")
     public TaskDTO updateTask(Long id, TaskDTO taskDTO) {
         try {
             Task task = taskRepo.findById(id)
@@ -82,7 +87,7 @@ public class TaskServiceImpl implements TaskService {
             Task updated = taskRepo.save(task);
 
             return taskMapper.taskToTaskDTO(updated);
-        } catch (ServiceException e){
+        } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
             throw new ServiceException("Error while updating task by id: " + e.getMessage());
@@ -90,6 +95,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @PostAuthorize("(returnObject.assignedManager == authentication.principal.nickname) " +
+                   "|| (returnObject.assignedEmployee == authentication.principal.nickname)")
     public TaskDTO getTask(Long id) {
         try {
             Task task = taskRepo.findById(id)
@@ -104,8 +111,17 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<TaskDTO> getAllTasksByProjectId(Long projectId) {
         try {
+            String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            User existingUser = userRepo.findByEmail(currentUser)
+                    .orElseThrow(() -> new NotFoundServiceException("User not found"));
+
             Project existingProject = projectRepo.findById(projectId)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
+
+            if (!existingProject.getManager().equals(existingUser) &&  !existingProject.getEmployees().contains(existingUser)) {
+                throw new NotFoundServiceException("Project does not belong to user");
+            }
 
             return taskRepo.findByProject(existingProject)
                     .stream()
@@ -117,6 +133,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @PreAuthorize("#userId == authentication.principal.id")
     public List<TaskDTO> getAllTasksByUserId(Long userId) {
         try {
             User existingUser = userRepo.findById(userId)
@@ -132,6 +149,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @PreAuthorize("(#userId == authentication.principal.id)")
     public List<TaskDTO> getAllTasksByProjectIdAndUserId(Long projectId, Long userId) {
         try {
             User existingUser = userRepo.findById(userId)
@@ -152,13 +170,26 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDTO deleteTask(Long id) {
         try {
+            String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            User existingUser = userRepo.findByEmail(currentUser)
+                    .orElseThrow(() -> new NotFoundServiceException("User not found"));
+            if (existingUser.getRole() == UserRole.EMPLOYEE){
+                throw new ServiceException("Employee cannot be deleted task");
+            }
+
             Task task = taskRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
+
+            Manager manager = (Manager) existingUser;
+            if (!manager.getTasks().contains(task)){
+                throw new NotFoundServiceException("User does not belong to task");
+            }
 
             taskRepo.delete(task);
 
             return taskMapper.taskToTaskDTO(task);
-        } catch (ServiceException e){
+        } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
             throw new ServiceException("Error while deleting task by id: " + e.getMessage());
@@ -168,6 +199,14 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public boolean assignUserToTask(Long taskId, Long userId) {
         try {
+            String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            User existingUser = userRepo.findByEmail(currentUser)
+                    .orElseThrow(() -> new NotFoundServiceException("User not found"));
+            if (existingUser.getRole() == UserRole.EMPLOYEE){
+                throw new ServiceException("Employee cannot be assign user to task");
+            }
+
             Task task = taskRepo.findById(taskId)
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
 
@@ -186,7 +225,7 @@ public class TaskServiceImpl implements TaskService {
             }
 
             return false;
-        } catch (ServiceException e){
+        } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
             throw new ServiceException("Error while assigning user to task:  " + e.getMessage());
@@ -196,6 +235,14 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public boolean removeUserFromTask(Long taskId, Long userId) {
         try {
+            String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            User existingUser = userRepo.findByEmail(currentUser)
+                    .orElseThrow(() -> new NotFoundServiceException("User not found"));
+            if (existingUser.getRole() == UserRole.EMPLOYEE){
+                throw new ServiceException("Employee cannot be remove user from task");
+            }
+
             Task task = taskRepo.findById(taskId)
                     .orElseThrow(() -> new NotFoundServiceException("Task not found"));
 
@@ -214,7 +261,7 @@ public class TaskServiceImpl implements TaskService {
             }
 
             return false;
-        } catch (ServiceException e){
+        } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
             throw new ServiceException("Error while removing user from task: " + e.getMessage());

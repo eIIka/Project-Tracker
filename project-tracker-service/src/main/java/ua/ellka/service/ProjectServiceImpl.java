@@ -1,6 +1,9 @@
 package ua.ellka.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import ua.ellka.dto.ProjectDTO;
 import ua.ellka.exception.NotFoundServiceException;
@@ -11,6 +14,7 @@ import ua.ellka.model.project.ProjectStatus;
 import ua.ellka.model.user.Employee;
 import ua.ellka.model.user.Manager;
 import ua.ellka.model.user.User;
+import ua.ellka.model.user.UserRole;
 import ua.ellka.repo.ProjectRepo;
 import ua.ellka.repo.UserRepo;
 
@@ -26,6 +30,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserRepo userRepo;
 
     @Override
+    @PreAuthorize("#projectDTO.managerName == authentication.principal.nickname")
     public ProjectDTO createProject(ProjectDTO projectDTO) {
         try {
             Manager manager = (Manager) userRepo.findByNickname(projectDTO.getManagerName())
@@ -50,6 +55,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @PreAuthorize("#projectDTO.managerName == authentication.principal.nickname")
     public ProjectDTO updateProject(Long id, ProjectDTO projectDTO) {
         try {
             Project project = projectRepo.findById(id)
@@ -73,8 +79,21 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDTO deleteProject(Long id) {
         try {
+            String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            User existingUser = userRepo.findByEmail(currentUser)
+                    .orElseThrow(() -> new NotFoundServiceException("User not found"));
+            if (existingUser.getRole() == UserRole.EMPLOYEE){
+                throw new ServiceException("Employee cannot be delete project");
+            }
+
             Project project = projectRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
+
+            Manager manager = (Manager) existingUser;
+            if (manager.getProjects().contains(project) || !project.getManager().equals(manager)){
+                throw new ServiceException("The user cannot delete the project because they are not the project manager");
+            }
 
             projectRepo.delete(project);
 
@@ -87,6 +106,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @PreAuthorize("#userId == authentication.principal.id")
     public List<ProjectDTO> getAllProjectsByUserId(Long userId) {
         try {
             User existingUser = userRepo.findById(userId)
@@ -102,10 +122,22 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+//    @PostAuthorize("returnObject.managerName == authentication.principal.nickname " +
+//                   "|| returnObject.employees.contains(authentication.principal.nickname)")
     public ProjectDTO getProject(Long id) {
         try {
+            String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
             Project project = projectRepo.findById(id)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
+
+            boolean isManager = project.getManager().getNickname().equals(currentUser);
+            boolean isEmployee = project.getEmployees().stream()
+                    .anyMatch(employee -> employee.getNickname().equals(currentUser));
+
+            if (!isManager && !isEmployee) {
+                throw new NotFoundServiceException("Access denied: User is not part of the project");
+            }
 
             return projectMapper.projectToProjectDTO(project);
         } catch (Exception e) {
@@ -116,6 +148,14 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public boolean assignUserToProject(Long projectId, Long userId) {
         try {
+            String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            User existingUser = userRepo.findByEmail(currentUser)
+                    .orElseThrow(() -> new NotFoundServiceException("User not found"));
+            if (existingUser.getRole() == UserRole.EMPLOYEE){
+                throw new ServiceException("Employee cannot be assign user to project");
+            }
+
             Project project = projectRepo.findById(projectId)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
@@ -145,6 +185,14 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public boolean removeUserFromProject(Long projectId, Long userId) {
         try {
+            String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            User existingUser = userRepo.findByEmail(currentUser)
+                    .orElseThrow(() -> new NotFoundServiceException("User not found"));
+            if (existingUser.getRole() == UserRole.EMPLOYEE){
+                throw new ServiceException("Employee cannot be remove user from project");
+            }
+
             Project project = projectRepo.findById(projectId)
                     .orElseThrow(() -> new NotFoundServiceException("Project not found"));
 
